@@ -1,0 +1,75 @@
+:root {
+  --color-base: #fefefe;
+  --color-primary: #000000;
+  --color-focus: hsl(48 98% 58%);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-base: #121212;
+    --color-primary: #ffffff;
+    --color-focus: hsl(42 95% 59%);
+  }
+}
+
+html {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+
+  color: var(--color-primary);
+  line-height: 1.4;
+
+  background-color: var(--color-base);
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+body,
+section,
+ul,
+ol,
+li {
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+}
+
+a {
+  color: currentColor;
+  text-decoration-thickness: 2px;
+  text-decoration-color: color-mix(in oklab, currentColor 20%, transparent);
+  transition: text-decoration-color 0.2s ease-in-out;
+  text-underline-offset: 4px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+  transition: none;
+}
+
+::selection {
+  color: #000000;
+
+  background-color: var(--color-focus);
+}
+
+footer {
+  margin-top: 40px;
+  color: color-mix(in oklab, currentColor 50%, transparent);
+  font-size: smaller;
+}
