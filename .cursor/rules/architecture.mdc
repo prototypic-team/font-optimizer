@@ -1,0 +1,36 @@
+---
+description: "Architecture patterns for module organization and feature structure"
+globs: ["src/modules/**/*"]
+alwaysApply: false
+---
+
+# Module Architecture Patterns
+
+## Module Structure
+
+Each feature module in `src/modules/` follows a consistent structure:
+
+```
+modules/
+  {module-name}/
+    types.d.ts         # TypeScript type definitions (exports to 'Types' module)
+```
+
+## Module Organization Rules
+
+- **Type definitions**: Use `types.d.ts` to declare types in the global `Types` module namespace
+- **Referencing types**: Import types from `Types` module: `import { TUser } from 'Types'`
+
+## Example Module Structure
+
+Reference the `state` module as the canonical example:
+
+- `@src/modules/state/types.d.ts` - Type definitions
+
+## Styling
+
+- Glyph is our design system. When creating new foundational components (text, button, icons, etc) keep them in Glyph folder.
+- use CSS modules for styling.
+- don't use Tailwind or any other 3rd party CSS framework
+- you can use atomic styles from Glyph (src/glyph/common.css)
+- use `cn` function from Glyph when you need apply certain class conditionally.

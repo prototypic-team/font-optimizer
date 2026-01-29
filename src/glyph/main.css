@@ -1,15 +1,11 @@
-:root {
-  --color-base: #fefefe;
-  --color-primary: #000;
-  --color-focus: hsl(48 98% 58%);
-}
+@import "./constants.css";
+@import "./common.css";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-base: #121212;
-    --color-primary: #fff;
-    --color-focus: hsl(42 95% 59%);
-  }
+@font-face {
+  font-family: pt-ui;
+  src:
+    url("./fonts/PT-Root-UI_VF.woff") format("woff2 supports variations"),
+    url("./fonts/PT-Root-UI_VF.woff2") format("woff2-variations");
 }
 
 html {
@@ -23,6 +19,8 @@ body {
   margin: 0;
 
   color: var(--color-primary);
+  font-size: var(--font-size-basic);
+  font-family: pt-ui, sans-serif;
   line-height: 1.4;
 
   background-color: var(--color-base);

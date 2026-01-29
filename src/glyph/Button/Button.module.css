@@ -1,0 +1,205 @@
+.button {
+	position: relative;
+
+	display: inline-flex;
+	flex-shrink: 0;
+	align-items: center;
+	justify-content: center;
+	height: var(--height-controls);
+	padding: 0 10px;
+
+	font-size: var(--font-size-basic);
+	line-height: 1.2;
+	letter-spacing: 0.02em;
+
+	border: 1px solid;
+	border-radius: var(--border-radius-controls);
+	cursor: pointer;
+
+	transition: background-color var(--transition-active),
+		border-color var(--transition-active), color var(--transition-active);
+
+	font-variation-settings: 'wght' 560;
+}
+
+.inner {
+	display: flex;
+	flex-direction: row;
+	gap: 8px;
+	align-items: center;
+	justify-content: center;
+}
+
+.button:disabled,
+.button.disabled {
+	outline: none;
+	cursor: not-allowed;
+	opacity: 0.5;
+}
+
+.button:focus {
+	outline: none;
+}
+
+.button[data-focus-visible='true']:not(:disabled) {
+	outline: var(--focus-outline);
+}
+
+.default {
+	color: hsl(var(--color-primary));
+
+	background-color: hsl(var(--color-primary) / 8%);
+	border-color: transparent;
+	/* stylelint-disable-next-line property-no-vendor-prefix */
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+}
+
+.default:hover:not(:disabled) {
+	background-color: hsl(var(--color-primary) / 14%);
+	border-color: transparent;
+}
+
+.accent {
+	color: hsl(var(--color-dark-hsl));
+
+	background-color: hsl(var(--color-focus));
+	border-color: hsl(var(--color-focus));
+	box-shadow: 0 2px 4px hsl(var(--color-primary) / 15%),
+		0 2px 6px hsl(var(--color-primary) / 8%);
+}
+
+.accent:disabled,
+.accent.disabled {
+	color: hsl(var(--color-dark-hsl) / 50%);
+
+	background-color: hsl(var(--color-focus) / 50%);
+	border-color: hsl(var(--color-focus) / 10%);
+	box-shadow: none;
+}
+
+.accent:hover:not(:disabled) {
+	background-color: hsl(var(--color-focus-text));
+	border-color: hsl(var(--color-focus-text));
+}
+
+.accent:active {
+	box-shadow: none;
+}
+
+.primary {
+	color: hsl(var(--color-base));
+
+	background-color: hsl(var(--color-primary));
+	border-color: hsl(var(--color-primary));
+	box-shadow: 0 2px 4px hsl(var(--color-dark-hsl) / 15%),
+		0 2px 6px hsl(var(--color-dark-hsl) / 8%);
+}
+
+.primary:disabled,
+.primary.disabled {
+	color: hsl(var(--color-base) / 50%);
+
+	box-shadow: none;
+}
+
+.primary:hover:not(:disabled) {
+	background-color: hsl(var(--color-primary) / 90%);
+	border-color: hsl(var(--color-primary) / 90%);
+}
+
+.primary:active {
+	box-shadow: none;
+}
+
+.danger {
+	color: hsl(var(--color-white-hsl));
+
+	background-color: hsl(var(--color-danger));
+	border-color: hsl(var(--color-danger));
+}
+
+.danger:hover:not(:disabled) {
+	background-color: hsl(var(--color-danger) / 90%);
+	border-color: hsl(var(--color-danger) / 90%);
+}
+
+.base {
+	color: hsl(var(--color-primary) / 70%);
+
+	background-color: hsl(var(--color-base) / 90%);
+	border-color: transparent;
+	/* stylelint-disable-next-line property-no-vendor-prefix */
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+}
+
+.base:hover:not(:disabled) {
+	color: hsl(var(--color-primary));
+
+	background-color: hsl(var(--color-base));
+	border-color: transparent;
+	box-shadow: var(--shadow-button-base);
+}
+
+@media (prefers-color-scheme: dark) {
+	.button.primary[data-focus-visible='true'] {
+		border-color: hsl(var(--color-base));
+	}
+
+	.base {
+		background-color: hsl(var(--color-off-background) / 90%);
+	}
+
+	.base:hover:not(:disabled) {
+		background-color: hsl(var(--color-off-background));
+		box-shadow: none;
+	}
+}
+
+.hidden {
+	visibility: hidden;
+}
+
+.loader {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+
+	transform: translate(-50%, -50%);
+}
+
+.small {
+	height: calc(var(--height-controls) - 6px);
+	padding: 0 12px;
+}
+
+.micro {
+	height: 24px;
+	padding: 0 8px;
+}
+
+.micro .inner {
+	gap: 4px;
+}
+
+.large {
+	height: 48px;
+	padding: 0 24px;
+
+	font-size: var(--font-size-large);
+}
+
+.text {
+	color: hsl(var(--color-primary));
+
+	background-color: transparent;
+	border-color: transparent;
+	/* stylelint-disable-next-line property-no-vendor-prefix */
+	-webkit-backdrop-filter: blur(6px);
+	backdrop-filter: blur(6px);
+}
+
+.text:hover:not(:disabled) {
+	background-color: hsl(var(--color-primary) / 14%);
+}

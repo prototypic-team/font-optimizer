@@ -1,0 +1,47 @@
+---
+description: "Code style conventions, import rules, and TypeScript patterns"
+globs: ["src/**/*.ts", "src/**/*.tsx"]
+alwaysApply: true
+---
+
+# Code Style Conventions
+
+## Import Organization
+
+Imports must follow this strict order (enforced by ESLint):
+
+1. Side-effect imports: `import '~/thread/root.css'`
+2. External packages: `import { Router } from '@solidjs/router'`
+3. Internal tools and aliases: `import { sql } from '~/modules/db'`
+4. Relative imports (`../` and `./`)
+5. Type-only imports: `import { TUser } from 'Types'`
+6.
+
+### Import Rules
+
+- Use `~/*` alias for `src/*` paths: `import { sql } from '~/modules/db'`
+- Use `Types` module for type definitions: `import { TUser } from 'Types'`
+- No default exports except for routes and config files
+- Group imports with blank lines between groups
+- Import sorting is enforced automatically
+- **No async dynamic imports** - Use direct imports for bundling compatibility: `import { func } from './module'` not `await import('./module')`
+
+## TypeScript Conventions
+
+- Use **strict mode** (enabled in tsconfig)
+- Use **tabs** for indentation (not spaces)
+- Prefix unused variables/parameters with `_`: `const _unused = ...`
+- Use `@ts-ignore` sparingly and always with explanatory comments
+- Prefer type definitions in `types.d.ts` over inline types for entities
+- Use type predicates for narrowing: `<T>(value: T | undefined | null): value is T => !!value`
+
+## CSS Formatting
+
+- Use tabs for indentation (consistent with TypeScript)
+- Group related properties together with blank lines between groups
+- Order properties logically: layout properties (display, position, etc.) first, then spacing (margin, padding), then typography, then visual (background, border, etc.)
+- Use consistent property ordering within groups
+- Prefer semantic HTML elements over unnecessary CSS classes when styling can be applied directly
+
+Reference: `@eslint.config.mjs` - Full linting rules configuration
+Reference: `@src/routes/sign-in.module.css` - CSS formatting example
