@@ -63,7 +63,10 @@ const addFonts = (files: File[]) => {
       const newFonts = newFiles
         .filter((f) => !existingKeys.has(f.name))
         .map(createFontFromFile);
-      return [...prev, ...newFonts];
+      return [...prev, ...newFonts].sort(
+        (a, b) =>
+          a.name.localeCompare(b.name) || a.extension.localeCompare(b.extension)
+      );
     });
   }, 0);
 };

@@ -1,8 +1,11 @@
-import { Component, createSignal, JSX } from "solid-js";
+import { Component, createMemo, createSignal, JSX } from "solid-js";
 
 import { cn } from "~/glyph";
 import { addFonts, store } from "~/modules/state";
-import { useFilePicker } from "~/modules/uploader/useFilePicker";
+import {
+  collectFilesFromDrop,
+  useFilePicker,
+} from "~/modules/uploader/useFilePicker";
 
 import styles from "./DropZone.module.css";
 
@@ -16,11 +19,16 @@ export const DropZone: Component<Props> = (props) => {
     onFilesSelected: addFonts,
   });
 
+  const handleClick: JSX.EventHandler<HTMLDivElement, MouseEvent> = () => {
+    if (store.fonts.length > 0) return;
+    openFilePicker();
+  };
+
   const handleKeyDown: JSX.EventHandler<HTMLDivElement, KeyboardEvent> = (
     e
   ) => {
+    if (store.fonts.length > 0) return;
     if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
       openFilePicker();
     }
   };
@@ -38,23 +46,28 @@ export const DropZone: Component<Props> = (props) => {
     setDragging(false);
   };
 
-  const handleDrop: JSX.EventHandler<HTMLDivElement, DragEvent> = (e) => {
+  const handleDrop: JSX.EventHandler<HTMLDivElement, DragEvent> = async (e) => {
     e.preventDefault();
     setDragging(false);
-    handleFileList(e.dataTransfer?.files ?? null);
+    const files = await collectFilesFromDrop(e.dataTransfer ?? null);
+    handleFileList(files.length > 0 ? files : null);
   };
+
+  const isEmpty = createMemo(() => store.fonts.length === 0);
 
   return (
     <div
       class={cn(
         styles.zone,
         dragging() && styles.dragging,
-        !store.fonts.length && styles.empty
+        isEmpty() && styles.empty
       )}
-      tabIndex={0}
-      role="button"
-      aria-label="Drop font files here or click to select"
-      onClick={openFilePicker}
+      tabIndex={isEmpty() ? 0 : undefined}
+      role={isEmpty() ? "button" : undefined}
+      aria-label={
+        isEmpty() ? "Drop font files here or click to select" : undefined
+      }
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
       onDragOver={handleDragOver}
       onDragEnter={handleDragOver}

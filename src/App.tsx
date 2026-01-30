@@ -9,7 +9,7 @@ export const App: Component = () => {
     <DropZone>
       <Show
         when={store.fonts.length > 0}
-        fallback={"Drop font here or click to select"}
+        fallback={"Drop fonts here or click to select"}
       >
         <FontList fonts={store.fonts} />
       </Show>

@@ -7,8 +7,6 @@
   align-items: center;
   justify-content: center;
 
-  cursor: pointer;
-
   transition:
     background-color var(--transition-basic),
     border-color var(--transition-basic);
@@ -21,6 +19,10 @@
 
 .zone.dragging {
   background-color: hsl(var(--color-focus) / 12%);
+}
+
+.zone.empty {
+  cursor: pointer;
 }
 
 .zone.empty::before {
@@ -49,6 +51,7 @@
 .dropHint {
   position: absolute;
   inset: 0;
+  z-index: 1;
 
   display: flex;
   align-items: center;
