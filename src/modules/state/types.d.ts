@@ -4,5 +4,7 @@ declare module "Types" {
     name: string;
     fileName: string;
     size: number;
+    extension: string;
+    file: File;
   };
 }

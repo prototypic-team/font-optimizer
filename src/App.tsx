@@ -1,9 +1,18 @@
-import type { Component } from "solid-js";
+import { Component, Show } from "solid-js";
+
+import { store } from "~/modules/state";
+import { DropZone } from "~/modules/uploader/FontDropZone/DropZone";
+import { FontList } from "~/modules/uploader/FontList/FontList";
 
 export const App: Component = () => {
   return (
-    <>
-      <h1>Hello world!!!!</h1>
-    </>
+    <DropZone>
+      <Show
+        when={store.fonts.length > 0}
+        fallback={"Drop font here or click to select"}
+      >
+        <FontList fonts={store.fonts} />
+      </Show>
+    </DropZone>
   );
 };

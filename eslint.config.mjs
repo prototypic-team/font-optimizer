@@ -100,7 +100,7 @@ export default [
 			'src/routes/**/*.tsx',
 			'src/app.tsx',
 			'src/entry-server.tsx',
-			'app.config.ts'
+			'vite.config.ts'
 		],
 		rules: {
 			'import/no-default-export': 'off'
