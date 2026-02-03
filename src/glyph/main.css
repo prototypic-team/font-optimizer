@@ -35,6 +35,8 @@ h5,
 h6,
 body,
 section,
+nav,
+main,
 ul,
 ol,
 li {
@@ -74,4 +76,11 @@ footer {
 
   color: color-mix(in oklab, currentcolor 50%, transparent);
   font-size: smaller;
+}
+
+h1 {
+  margin: 0;
+
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-title);
 }

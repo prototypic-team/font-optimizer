@@ -1,0 +1,61 @@
+.list {
+  position: sticky;
+  top: 0;
+
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  grid-area: fonts-list;
+  gap: 4px;
+  align-items: flex-start;
+  width: 180px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 24px 16px 16px;
+  overflow-y: auto;
+}
+
+.item {
+  display: inline-grid;
+  padding: 6px 12px;
+
+  text-align: left;
+
+  background-color: transparent;
+  border: none;
+  border-radius: var(--border-radius-controls);
+  cursor: pointer;
+
+  transition: background-color var(--transition-basic);
+}
+
+.item:hover:not(.selected) {
+  background-color: var(--color-divider);
+}
+
+.item:focus-visible {
+  outline: var(--focus-outline);
+}
+
+.selected {
+  background-color: var(--color-divider);
+}
+
+.name {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.size {
+  color: color-mix(in oklab, currentcolor 40%, transparent);
+  font-size: var(--font-size-small);
+}
+
+@media (width <= 600px) {
+  .list {
+    flex-direction: row;
+  }
+}

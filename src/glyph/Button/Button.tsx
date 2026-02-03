@@ -16,21 +16,7 @@ type ButtonProps = MergeWithPriority<
     /**
      * Visual style of the button
      */
-    kind?: "accent" | "base" | "danger" | "default" | "primary" | "text";
-
-    /**
-     * Size of the button.
-     */
-    size?: "regular" | "small" | "micro" | "large";
-
-    /**
-     * Applies a disabled style to the button, but keeps it interactive.
-     * The use case for that is to provide a feedback for the user,
-     * when they try to click on disabled button. For example, in forms,
-     * if form is invalid, we disable the submit button, but when the user
-     * clicks on it, we focus the first field that has an error.
-     */
-    visuallyDisabled?: boolean;
+    kind?: "default" | "primary";
   },
   Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "classList">
 >;
@@ -38,30 +24,14 @@ type ButtonProps = MergeWithPriority<
 export const Button: Component<ButtonProps> = (props) => {
   const [local, focus, other] = splitProps(
     props,
-    [
-      "kind",
-      "children",
-      "class",
-      "disabled",
-      "loading",
-      "size",
-      "type",
-      "visuallyDisabled",
-    ],
+    ["kind", "children", "class", "disabled", "loading", "type"],
     focusPropsNames
   );
 
   const { focusVisible, props: focusProps } = useFocus(focus);
   return (
     <button
-      class={cn(
-        styles.button,
-        styles[local.kind || "default"],
-        styles[local.size || "regular"],
-        local.visuallyDisabled && styles.disabled,
-        local.class
-      )}
-      data-kind={local.kind}
+      class={cn(styles.button, styles[local.kind || "default"], local.class)}
       data-focus-visible={focusVisible()}
       disabled={local.disabled || local.loading}
       type={local.type || "button"}

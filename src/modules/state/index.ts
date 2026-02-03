@@ -1,6 +1,9 @@
-import { createStore } from "solid-js/store";
+import { createStore, produce } from "solid-js/store";
 
-import type { TFont } from "Types";
+import { parseFont } from "~/modules/fonts/parser";
+import { fontsPredicate } from "~/modules/fonts/utils";
+
+import type { TFont, TParsedFont } from "Types";
 
 const FONT_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf"];
 
@@ -44,31 +47,76 @@ const createFontFromFile = (file: File): TFont => ({
   file,
 });
 
-type FontsState = {
-  fonts: TFont[];
+type TFontsState = {
+  fonts: Record<string, TFont>;
+  selectedFontId: string | null;
+  parsedFonts: Record<string, TParsedFont>;
+  parsingFontId: string | null;
 };
 
-const [store, setStore] = createStore<FontsState>({
-  fonts: [],
+const [store, setStore] = createStore<TFontsState>({
+  fonts: {},
+  selectedFontId: null,
+  parsedFonts: {},
+  parsingFontId: null,
 });
 
 const addFonts = (files: File[]) => {
   const newFiles = [...files];
 
-  // We are deferring the state update to avoid freezing UI during
-  // file processing.
-  setTimeout(() => {
-    setStore("fonts", (prev) => {
-      const existingKeys = new Set(prev.map((f) => f.fileName));
-      const newFonts = newFiles
-        .filter((f) => !existingKeys.has(f.name))
-        .map(createFontFromFile);
-      return [...prev, ...newFonts].sort(
-        (a, b) =>
-          a.name.localeCompare(b.name) || a.extension.localeCompare(b.extension)
-      );
+  const existingKeys = new Set(
+    Object.values(store.fonts).map((f) => f.fileName)
+  );
+  const newFonts: TFont[] = [];
+  for (const file of newFiles) {
+    if (existingKeys.has(file.name)) continue;
+    const font = createFontFromFile(file);
+    newFonts.push(font);
+    existingKeys.add(file.name);
+
+    const url = URL.createObjectURL(font.file);
+    const face = new FontFace(font.id, `url(${url})`);
+    face.load().then((loaded) => {
+      document.fonts.add(loaded);
     });
-  }, 0);
+  }
+
+  setStore(
+    produce((prev) => {
+      for (const font of newFonts) {
+        prev.fonts[font.id] = font;
+      }
+      if (!prev.selectedFontId) {
+        const sortedFonts = Object.values(prev.fonts).sort(fontsPredicate);
+        prev.selectedFontId = sortedFonts[0].id;
+        loadParsedFont(sortedFonts[0]);
+      }
+    })
+  );
 };
 
-export { addFonts, store };
+const selectFont = (fontId: string) => {
+  setStore("selectedFontId", fontId);
+  const font = store.fonts[fontId];
+  if (font && !store.parsedFonts[fontId]) {
+    loadParsedFont(font);
+  }
+};
+
+const loadParsedFont = async (font: TFont) => {
+  if (store.parsedFonts[font.id]) return;
+
+  setStore("parsingFontId", font.id);
+  try {
+    const parsed = await parseFont(font.file);
+    setStore("parsedFonts", font.id, parsed);
+  } catch (error) {
+    // Log parsing errors for debugging
+    // eslint-disable-next-line no-console
+    console.error("Font parsing failed:", error);
+  } finally {
+    setStore("parsingFontId", null);
+  }
+};
+
+export { addFonts, selectFont, store };
