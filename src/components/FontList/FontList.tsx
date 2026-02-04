@@ -7,24 +7,6 @@ import { formatFileSize } from "~/utils/format";
 
 import styles from "./FontList.module.css";
 
-import type { TFont } from "Types";
-
-type FontNameProps = {
-  font: TFont;
-  class?: string;
-};
-
-const FontName: Component<FontNameProps> = (props) => {
-  return (
-    <span
-      class={props.class}
-      style={{ "font-family": `"${props.font.id}", sans-serif` }}
-    >
-      {props.font.name}
-    </span>
-  );
-};
-
 export const FontList: Component = () => {
   const fonts = createMemo(() =>
     Object.values(store.fonts).sort(fontsPredicate)
@@ -42,7 +24,12 @@ export const FontList: Component = () => {
               )}
               onClick={() => selectFont(font.id)}
             >
-              <FontName font={font} class={styles.name} />
+              <span
+                class={styles.name}
+                style={{ "font-family": `"${font.id}", sans-serif` }}
+              >
+                {font.name}
+              </span>
               <span class={styles.size}>
                 {[font.extension, formatFileSize(font.size)]
                   .filter(Boolean)

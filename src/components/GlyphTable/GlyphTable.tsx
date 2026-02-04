@@ -35,10 +35,7 @@ const GlyphCell: Component<GlyphCellProps> = (props) => {
   );
 
   return (
-    <div
-      class={styles.cell}
-      title={`${props.glyph.name} (${props.glyph.char})`}
-    >
+    <div class={styles.cell} title={props.glyph.name}>
       <svg class={styles.glyphSvg} viewBox={viewBox()}>
         <Show
           when={hasPath()}
@@ -63,9 +60,11 @@ const GlyphCell: Component<GlyphCellProps> = (props) => {
       </svg>
       <div class={styles.info}>
         <span class={styles.name}>{props.glyph.name}</span>
-        <span class={styles.code}>
-          {props.glyph.codePoints.map(formatCodePoint).join(", ")}
-        </span>
+        {props.glyph.codePoints && (
+          <span class={styles.code}>
+            {props.glyph.codePoints.map(formatCodePoint).join(", ")}
+          </span>
+        )}
       </div>
     </div>
   );

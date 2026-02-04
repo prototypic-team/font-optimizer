@@ -1,8 +1,7 @@
 declare module "Types" {
   export type TGlyph = {
     id: number;
-    codePoints: number[];
-    char: string;
+    codePoints?: number[];
     name?: string;
     categoryId: string;
     path: string;
