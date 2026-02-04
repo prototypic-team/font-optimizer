@@ -54,7 +54,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --color-base: #121212;
-    --color-primary: #fff;
+    --color-primary: #fefefe;
     --color-secondary: rgb(255 255 255 / 60%);
     --color-focus: hsl(42 95% 59%);
   }

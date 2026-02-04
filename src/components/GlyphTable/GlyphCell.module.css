@@ -1,0 +1,50 @@
+.cell {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 4px;
+  padding: 8px;
+
+  background-color: color-mix(in oklab, var(--color-primary) 3%, transparent);
+  cursor: default;
+
+  transition: background-color var(--transition-basic);
+}
+
+.cell:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+
+.glyphSvg {
+  width: 100%;
+
+  color: var(--color-primary);
+
+  aspect-ratio: 1;
+}
+
+.glyphPlaceholder {
+  font-size: 400px;
+
+  fill: var(--color-secondary);
+}
+
+.info {
+  display: grid;
+  align-items: flex-end;
+  height: 32px;
+
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  text-transform: capitalize;
+}
+
+.name {
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.code {
+  color: var(--color-secondary);
+}

@@ -1,0 +1,51 @@
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group > header {
+  position: sticky;
+  top: 52px;
+  z-index: 1;
+
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 4px;
+
+  background-color: color-mix(in oklab, var(--color-base) 99%, transparent);
+}
+
+.group h3 {
+  margin: 0;
+
+  font-weight: var(--font-weight-normal);
+  font-size: var(--font-size-header);
+}
+
+.group > header p {
+  margin: 0;
+
+  color: var(--color-secondary);
+  font-size: var(--font-size-small);
+}
+
+.groupMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  font-size: var(--font-size-small);
+}
+
+.groupWeight {
+  color: var(--color-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 2px;
+}
