@@ -1,7 +1,7 @@
-import { Component, createEffect, createMemo, For } from "solid-js";
+import { Component, createEffect, createMemo, For, Show } from "solid-js";
 
 import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
-import { toggleGroup } from "~/modules/state";
+import { toggleGroup, toggleGroupCollapsed } from "~/modules/state";
 
 import { GlyphCell } from "./GlyphCell";
 import styles from "./GlyphGroup.module.css";
@@ -52,6 +52,10 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
     () => `${base()?.id}-${props.group.category.id}`
   );
 
+  const isCollapsed = createMemo(
+    () => base()?.collapsedGroups?.[props.group.category.id] ?? false
+  );
+
   createEffect(() => {
     if (checkboxRef) {
       let allEnabled = true,
@@ -90,11 +94,45 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
           <label for={checkboxId()}>
             <h3>{props.group.category.name}</h3>
           </label>
+          <button
+            type="button"
+            class={styles.collapseButton}
+            onClick={() =>
+              toggleGroupCollapsed(base()!.id, props.group.category.id)
+            }
+            aria-label={isCollapsed() ? "Expand" : "Collapse"}
+          >
+            <svg
+              class={styles.collapseIcon}
+              classList={{ [styles.collapsed]: isCollapsed() }}
+              width="16"
+              height="16"
+              viewBox="0 0 12 12"
+            >
+              <path
+                d="M3 5L6 8L9 5"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                fill="none"
+              />
+            </svg>
+          </button>
         </div>
+        <button
+          type="button"
+          tabindex="-1"
+          class={styles.collapseTrigger}
+          onClick={() =>
+            toggleGroupCollapsed(base()!.id, props.group.category.id)
+          }
+          aria-label={isCollapsed() ? "Expand" : "Collapse"}
+        ></button>
         {glyphCount() > 0 && (
           <div class={styles.meta}>
             {glyphCount() !== props.group.glyphs.length
-              ? `${glyphCount()} / ${props.group.glyphs.length}`
+              ? `${glyphCount()} / ${props.group.glyphs.length}`
               : glyphCount()}{" "}
             glyphs
             <div class={styles.weight}>
@@ -103,11 +141,13 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
           </div>
         )}
       </header>
-      <div class={styles.grid}>
-        <For each={props.group.glyphs}>
-          {(glyph) => <GlyphCell glyph={glyph} />}
-        </For>
-      </div>
+      <Show when={!isCollapsed()}>
+        <div class={styles.grid}>
+          <For each={props.group.glyphs}>
+            {(glyph) => <GlyphCell glyph={glyph} />}
+          </For>
+        </div>
+      </Show>
     </section>
   );
 };

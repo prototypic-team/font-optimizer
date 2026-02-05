@@ -38,7 +38,7 @@ export const GlyphTable: Component = () => {
           {parsed() && (
             <div class={styles.fontInfo}>
               {disabledGlyphsCount()
-                ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
+                ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
                 : glyphCount()}{" "}
               glyphs
               <span class={styles.fontFileSize}>

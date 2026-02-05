@@ -10,13 +10,55 @@
   z-index: 1;
 
   display: flex;
-  gap: 12px;
   align-items: center;
   justify-content: space-between;
   min-height: 38px;
   padding-bottom: 2px;
 
   background-color: color-mix(in oklab, var(--color-base) 99%, transparent);
+}
+
+.collapseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+
+  color: var(--color-primary);
+
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-controls);
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-active),
+    color var(--transition-active);
+}
+
+.collapseButton:hover {
+  background-color: color-mix(in oklab, var(--color-primary) 10%, transparent);
+}
+
+.collapseButton:focus-visible {
+  outline: var(--focus-outline);
+}
+
+.collapseIcon {
+  transition: transform var(--transition-active);
+}
+
+.collapseIcon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.collapseTrigger {
+  flex-grow: 1;
+  height: 100%;
+
+  opacity: 0;
 }
 
 .group > header input[type="checkbox"] {

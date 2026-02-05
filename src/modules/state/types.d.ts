@@ -6,7 +6,7 @@ declare module "Types" {
     size: number;
     extension: string;
     file: File;
-    /** Code point -> enabled (true) / disabled (false). Omitted code points default to enabled. */
     disabledCodePoints: Record<string, boolean>;
+    collapsedGroups: Record<string, boolean>;
   };
 }

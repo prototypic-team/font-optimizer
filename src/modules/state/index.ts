@@ -46,6 +46,7 @@ const createFontFromFile = (file: File): TFont => ({
   extension: extensionFromFile(file.name, file.type),
   file,
   disabledCodePoints: {},
+  collapsedGroups: {},
 });
 
 type TFontsState = {
@@ -147,4 +148,15 @@ const toggleGroup = (fontId: string, groupId: string) => {
   );
 };
 
-export { addFonts, selectFont, store, toggleGlyph, toggleGroup };
+const toggleGroupCollapsed = (fontId: string, groupId: string) => {
+  setStore("fonts", fontId, "collapsedGroups", groupId, (prev) => !prev);
+};
+
+export {
+  addFonts,
+  selectFont,
+  store,
+  toggleGlyph,
+  toggleGroup,
+  toggleGroupCollapsed,
+};

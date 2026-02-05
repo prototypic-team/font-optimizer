@@ -37,6 +37,6 @@
 .groups {
   display: flex;
   flex-direction: column;
-  gap: 48px;
+  gap: 4px;
   padding: 0 16px;
 }
