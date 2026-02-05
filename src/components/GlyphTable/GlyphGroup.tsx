@@ -1,6 +1,6 @@
 import { Component, createEffect, createMemo, For } from "solid-js";
 
-import { useCurrentFont } from "~/modules/fonts/utils";
+import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
 import { toggleGroup } from "~/modules/state";
 
 import { GlyphCell } from "./GlyphCell";
@@ -15,17 +15,7 @@ const formatPercent = (count: number, total: number): string => {
   return `~${Math.round(percent)}%`;
 };
 
-const formatEstimatedSize = (
-  glyphCount: number,
-  totalGlyphs: number,
-  fontFileSize: number
-): string => {
-  if (totalGlyphs === 0 || fontFileSize === 0) return "";
-  // Estimate: glyphs are roughly 60-70% of font file size (rest is metadata, tables)
-  const glyphDataRatio = 0.65;
-  const estimatedBytes =
-    (glyphCount / totalGlyphs) * fontFileSize * glyphDataRatio;
-  const kb = estimatedBytes / 1024;
+const formatEstimatedSize = (kb: number): string => {
   if (kb < 1) return "1 KB";
   return `${Math.round(kb)} KB`;
 };
@@ -40,7 +30,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
   const glyphCount = createMemo(() => {
     let disabledGlyphsCount = 0;
     for (const glyph of props.group.glyphs) {
-      if (base()?.glyphsMask[glyph.id] === false) {
+      if (base()?.disabledCodePoints[glyph.codePoints.join(",")]) {
         disabledGlyphsCount++;
       }
     }
@@ -52,9 +42,8 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
   );
   const estimatedSize = createMemo(() =>
     formatEstimatedSize(
-      glyphCount(),
-      parsed()?.totalGlyphs || 0,
-      base()?.size || 0
+      estimateSize(glyphCount(), parsed()?.totalGlyphs || 0, base()?.size || 0)
+        .kb
     )
   );
 
@@ -65,12 +54,15 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
 
   createEffect(() => {
     if (checkboxRef) {
-      const allEnabled = props.group.glyphs.every(
-        (glyph) => base()?.glyphsMask[glyph.id] !== false
-      );
-      const allDisabled = props.group.glyphs.every(
-        (glyph) => base()?.glyphsMask[glyph.id] === false
-      );
+      let allEnabled = true,
+        allDisabled = true;
+      for (const glyph of props.group.glyphs) {
+        if (base()?.disabledCodePoints[glyph.codePoints.join(",")]) {
+          allEnabled = false;
+        } else {
+          allDisabled = false;
+        }
+      }
 
       if (allEnabled) {
         checkboxRef.checked = true;

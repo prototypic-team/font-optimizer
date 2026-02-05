@@ -45,7 +45,7 @@ const createFontFromFile = (file: File): TFont => ({
   size: file.size,
   extension: extensionFromFile(file.name, file.type),
   file,
-  glyphsMask: {},
+  disabledCodePoints: {},
 });
 
 type TFontsState = {
@@ -120,10 +120,8 @@ const loadParsedFont = async (font: TFont) => {
   }
 };
 
-const toggleGlyph = (fontId: string, glyphId: number) => {
-  setStore("fonts", fontId, "glyphsMask", glyphId, (prev) =>
-    prev === false ? true : false
-  );
+const toggleGlyph = (fontId: string, codePoints: string) => {
+  setStore("fonts", fontId, "disabledCodePoints", codePoints, (prev) => !prev);
 };
 
 const toggleGroup = (fontId: string, groupId: string) => {
@@ -139,11 +137,11 @@ const toggleGroup = (fontId: string, groupId: string) => {
       if (!group) return prev;
 
       const allDisabled = group.glyphs.every(
-        (glyph) => font.glyphsMask[glyph.id] === false
+        (glyph) => font.disabledCodePoints[glyph.codePoints.join(",")]
       );
 
       group.glyphs.forEach((glyph) => {
-        font.glyphsMask[glyph.id] = allDisabled;
+        font.disabledCodePoints[glyph.codePoints.join(",")] = !allDisabled;
       });
     })
   );

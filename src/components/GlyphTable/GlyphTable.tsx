@@ -12,7 +12,8 @@ export const GlyphTable: Component = () => {
   const disabledGlyphsCount = createMemo(() => {
     if (!base() || !parsed()) return 0;
 
-    return Object.values(base()!.glyphsMask).filter((v) => v === false).length;
+    return Object.values(base()!.disabledCodePoints).filter((v) => v === true)
+      .length;
   });
   const glyphCount = createMemo(() =>
     parsed() ? parsed()!.totalGlyphs - disabledGlyphsCount() : 0

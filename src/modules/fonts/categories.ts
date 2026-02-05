@@ -30,13 +30,6 @@ const OTHER_CATEGORY: TGlyphCategory = {
   ranges: [],
 };
 
-export const LIGATURE_CATEGORY: TGlyphCategory = {
-  id: "ligatures",
-  name: "Ligatures",
-  description: "Glyph substitutions for character sequences (e.g. fi, fl)",
-  ranges: [],
-};
-
 export const GLYPH_CATEGORIES: TGlyphCategory[] = [
   {
     id: "basic-latin",
@@ -147,7 +140,6 @@ export const GLYPH_CATEGORIES: TGlyphCategory[] = [
     ],
   },
   OTHER_CATEGORY,
-  LIGATURE_CATEGORY,
 ];
 
 /**

@@ -37,16 +37,18 @@ export const GlyphCell: Component<GlyphCellProps> = (props) => {
     () => props.glyph.path && props.glyph.path.length > 0
   );
 
+  const codePoints = createMemo(() => props.glyph.codePoints.join(","));
+
   return (
     <button
       type="button"
       class={styles.cell}
       classList={{
         [styles.cell]: true,
-        [styles.disabled]: base()?.glyphsMask[props.glyph.id] === false,
+        [styles.disabled]: base()?.disabledCodePoints[codePoints()],
       }}
       title={props.glyph.name}
-      onClick={() => toggleGlyph(base()!.id, props.glyph.id)}
+      onClick={() => toggleGlyph(base()!.id, codePoints())}
     >
       <svg class={styles.glyphSvg} viewBox={viewBox()}>
         <Show
