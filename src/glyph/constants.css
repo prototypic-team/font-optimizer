@@ -18,9 +18,8 @@
   --font-weight-bold: 640;
 
   /* Misc */
-  --border-radius-controls: 5px;
+  --border-radius-controls: 4px;
   --border-radius-panels: 8px;
-  --height-controls: 36px;
   --height-controls-small: 26px;
 
   /* Animations */

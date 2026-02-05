@@ -6,5 +6,7 @@ declare module "Types" {
     size: number;
     extension: string;
     file: File;
+    /** Glyph id -> enabled (true) / disabled (false). Omitted glyphs default to enabled. */
+    glyphsMask: Record<number, boolean>;
   };
 }

@@ -1,17 +1,27 @@
 .cell {
   display: grid;
   grid-template-rows: 1fr auto;
-  gap: 4px;
+  gap: 12px;
   padding: 8px;
 
   background-color: color-mix(in oklab, var(--color-primary) 3%, transparent);
-  cursor: default;
+  border: none;
+  border-radius: var(--border-radius-controls);
+  cursor: pointer;
 
   transition: background-color var(--transition-basic);
 }
 
 .cell:hover {
   background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+
+.cell:focus-visible {
+  outline: var(--focus-outline);
+}
+
+.cell.disabled .glyphSvg {
+  color: color-mix(in oklab, var(--color-primary) 20%, transparent);
 }
 
 .glyphSvg {
@@ -31,10 +41,12 @@
 .info {
   display: grid;
   align-items: flex-end;
+  justify-content: flex-start;
   height: 32px;
 
   font-size: 10px;
   font-family: ui-monospace, monospace;
+  text-align: left;
   text-transform: capitalize;
 }
 

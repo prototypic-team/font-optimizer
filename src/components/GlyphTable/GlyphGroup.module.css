@@ -13,9 +13,42 @@
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 4px;
+  min-height: 38px;
+  padding-bottom: 2px;
 
   background-color: color-mix(in oklab, var(--color-base) 99%, transparent);
+}
+
+.group > header input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 12px;
+  border: 1px solid color-mix(in oklab, var(--color-primary) 20%, transparent);
+  border-radius: var(--border-radius-controls);
+  cursor: pointer;
+
+  transition:
+    background-color var(--transition-active),
+    background-image var(--transition-active);
+
+  appearance: none;
+}
+
+.group > header input[type="checkbox"]:checked {
+  background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6L5 9L10 3' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+.group > header input[type="checkbox"]:indeterminate {
+  background-color: var(--color-primary);
+  background-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6H10' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>");
+}
+
+.group > header input[type="checkbox"]:focus-visible {
+  outline: var(--focus-outline);
 }
 
 .group h3 {
@@ -32,7 +65,7 @@
   font-size: var(--font-size-small);
 }
 
-.groupMeta {
+.meta {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -40,7 +73,7 @@
   font-size: var(--font-size-small);
 }
 
-.groupWeight {
+.weight {
   color: var(--color-secondary);
 }
 

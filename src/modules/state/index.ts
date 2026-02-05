@@ -45,6 +45,7 @@ const createFontFromFile = (file: File): TFont => ({
   size: file.size,
   extension: extensionFromFile(file.name, file.type),
   file,
+  glyphsMask: {},
 });
 
 type TFontsState = {
@@ -119,4 +120,33 @@ const loadParsedFont = async (font: TFont) => {
   }
 };
 
-export { addFonts, selectFont, store };
+const toggleGlyph = (fontId: string, glyphId: number) => {
+  setStore("fonts", fontId, "glyphsMask", glyphId, (prev) =>
+    prev === false ? true : false
+  );
+};
+
+const toggleGroup = (fontId: string, groupId: string) => {
+  setStore(
+    produce((prev) => {
+      const font = prev.fonts[fontId];
+      if (!font) return prev;
+
+      const parsed = prev.parsedFonts[fontId];
+      if (!parsed) return prev;
+
+      const group = parsed.groups.find((g) => g.category.id === groupId);
+      if (!group) return prev;
+
+      const allDisabled = group.glyphs.every(
+        (glyph) => font.glyphsMask[glyph.id] === false
+      );
+
+      group.glyphs.forEach((glyph) => {
+        font.glyphsMask[glyph.id] = allDisabled;
+      });
+    })
+  );
+};
+
+export { addFonts, selectFont, store, toggleGlyph, toggleGroup };

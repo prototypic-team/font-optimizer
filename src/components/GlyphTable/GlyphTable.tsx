@@ -1,45 +1,59 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
-import { store } from "~/modules/state";
+import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
 import { formatFileSize } from "~/utils/format";
 
 import { GlyphGroup } from "./GlyphGroup";
 import styles from "./GlyphTable.module.css";
 
 export const GlyphTable: Component = () => {
-  const font = createMemo(() =>
-    store.selectedFontId ? store.fonts[store.selectedFontId] : undefined
+  const { base, parsed } = useCurrentFont();
+
+  const disabledGlyphsCount = createMemo(() => {
+    if (!base() || !parsed()) return 0;
+
+    return Object.values(base()!.glyphsMask).filter((v) => v === false).length;
+  });
+  const glyphCount = createMemo(() =>
+    parsed() ? parsed()!.totalGlyphs - disabledGlyphsCount() : 0
   );
-  const parsedFont = createMemo(() =>
-    store.selectedFontId ? store.parsedFonts[store.selectedFontId] : undefined
-  );
+  const estimatedSize = createMemo(() => {
+    if (!parsed() || !base()) return 0;
+
+    return estimateSize(
+      disabledGlyphsCount(),
+      parsed()!.totalGlyphs,
+      base()!.size
+    ).bytes;
+  });
+
   return (
-    <Show when={font()}>
+    <Show when={base()}>
       <div class={styles.table}>
         <header class={styles.header}>
-          <h1 style={{ "font-family": `"${font()!.id}", sans-serif` }}>
-            {font()!.name}
+          <h1 style={{ "font-family": `"${base()!.id}", sans-serif` }}>
+            {base()!.name}
           </h1>
-          {parsedFont() && (
+          {parsed() && (
             <div class={styles.fontInfo}>
-              {parsedFont()!.totalGlyphs} glyphs
+              {disabledGlyphsCount()
+                ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
+                : glyphCount()}{" "}
+              glyphs
               <span class={styles.fontFileSize}>
-                {formatFileSize(font()!.size)}
+                {disabledGlyphsCount()
+                  ? `${formatFileSize(base()!.size)} → ${formatFileSize(base()!.size - estimatedSize())}`
+                  : formatFileSize(base()!.size)}
               </span>
             </div>
           )}
         </header>
-        <Show when={parsedFont()}>
+        <Show when={parsed()}>
           <div class={styles.groups}>
-            <For each={parsedFont()!.groups}>
-              {(group) => (
-                <GlyphGroup
-                  group={group}
-                  fontInfo={parsedFont()!.info}
-                  totalGlyphs={parsedFont()!.totalGlyphs}
-                  fontFileSize={font()!.size}
-                />
-              )}
+            <For each={parsed()!.groups}>
+              {(group) =>
+                group.glyphs.length > 0 ? <GlyphGroup group={group} /> : null
+              }
             </For>
           </div>
         </Show>
