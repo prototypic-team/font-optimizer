@@ -79,10 +79,11 @@ const addFonts = (files: File[]) => {
     newFonts.push(font);
     existingKeys.add(file.name);
 
-    const url = URL.createObjectURL(font.file);
-    const face = new FontFace(font.id, `url(${url})`);
-    face.load().then((loaded) => {
-      document.fonts.add(loaded);
+    font.file.arrayBuffer().then((buffer) => {
+      const face = new FontFace(font.id, buffer);
+      face.load().then((loaded) => {
+        document.fonts.add(loaded);
+      });
     });
   }
 
