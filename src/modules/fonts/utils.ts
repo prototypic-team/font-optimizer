@@ -15,7 +15,9 @@ export const useCurrentFont = () => ({
   parsed: createMemo(() =>
     store.selectedFontId ? store.parsedFonts[store.selectedFontId] : undefined
   ),
-  isParsing: createMemo(() => store.parsingFontId === store.selectedFontId),
+  isParsing: createMemo(
+    () => !!store.selectedFontId && !!store.parsingFonts[store.selectedFontId]
+  ),
 });
 
 export const estimateSize = (

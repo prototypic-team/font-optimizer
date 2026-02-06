@@ -8,10 +8,9 @@ import type { TFontInfo, TGlyphGroup, TParsedFont } from "Types";
 const glyphNameRegEx = /^u.*\d+/;
 
 /**
- * Parse a font file and extract all glyphs with their metadata
+ * Parse font from an ArrayBuffer (e.g. in a worker).
  */
-export const parseFont = async (file: File): Promise<TParsedFont> => {
-  const buffer = await file.arrayBuffer();
+export const parseFontFromBuffer = (buffer: ArrayBuffer): TParsedFont => {
   const result = create(new Uint8Array(buffer) as unknown as Buffer);
   const font = "fonts" in result ? result.fonts[0] : result;
 

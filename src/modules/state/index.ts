@@ -1,6 +1,9 @@
 import { createStore, produce } from "solid-js/store";
 
-import { parseFont } from "~/modules/fonts/parser";
+import {
+  parseFontInWorker,
+  prioritizeFont,
+} from "~/modules/fonts/parserWorker";
 import { fontsPredicate } from "~/modules/fonts/utils";
 
 import type { TFont, TParsedFont } from "Types";
@@ -53,14 +56,14 @@ type TFontsState = {
   fonts: Record<string, TFont>;
   selectedFontId: string | null;
   parsedFonts: Record<string, TParsedFont>;
-  parsingFontId: string | null;
+  parsingFonts: Record<string, boolean>;
 };
 
 const [store, setStore] = createStore<TFontsState>({
   fonts: {},
   selectedFontId: null,
   parsedFonts: {},
-  parsingFontId: null,
+  parsingFonts: {},
 });
 
 const addFonts = (files: File[]) => {
@@ -91,33 +94,49 @@ const addFonts = (files: File[]) => {
       if (!prev.selectedFontId) {
         const sortedFonts = Object.values(prev.fonts).sort(fontsPredicate);
         prev.selectedFontId = sortedFonts[0].id;
-        loadParsedFont(sortedFonts[0]);
       }
     })
   );
+
+  // Enqueue selected font first, then all others
+  const selected = store.selectedFontId;
+  for (const font of newFonts) {
+    if (font.id === selected) {
+      loadParsedFont(font);
+    }
+  }
+  for (const font of newFonts) {
+    if (font.id !== selected) {
+      loadParsedFont(font);
+    }
+  }
 };
 
 const selectFont = (fontId: string) => {
   setStore("selectedFontId", fontId);
   const font = store.fonts[fontId];
   if (font && !store.parsedFonts[fontId]) {
-    loadParsedFont(font);
+    if (store.parsingFonts[fontId]) {
+      prioritizeFont(fontId);
+    } else {
+      loadParsedFont(font);
+    }
   }
 };
 
 const loadParsedFont = async (font: TFont) => {
-  if (store.parsedFonts[font.id]) return;
+  if (store.parsedFonts[font.id] || store.parsingFonts[font.id]) return;
 
-  setStore("parsingFontId", font.id);
+  setStore("parsingFonts", font.id, true);
   try {
-    const parsed = await parseFont(font.file);
+    const parsed = await parseFontInWorker(font.id, font.file);
     setStore("parsedFonts", font.id, parsed);
   } catch (error) {
     // Log parsing errors for debugging
     // eslint-disable-next-line no-console
     console.error("Font parsing failed:", error);
   } finally {
-    setStore("parsingFontId", null);
+    setStore("parsingFonts", font.id, false);
   }
 };
 
