@@ -1,8 +1,3 @@
-/**
- * Glyph categories optimized for font subsetting.
- * Categories are ordered by typical usage frequency in web content.
- */
-
 import { TGlyphCategory } from "Types";
 
 /**
@@ -141,9 +136,3 @@ export const GLYPH_CATEGORIES: TGlyphCategory[] = [
   },
   OTHER_CATEGORY,
 ];
-
-/**
- * Get category by id
- */
-export const getCategoryById = (id: string): TGlyphCategory | undefined =>
-  GLYPH_CATEGORIES.find((cat) => cat.id === id);

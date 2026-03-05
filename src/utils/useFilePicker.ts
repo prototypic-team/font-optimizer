@@ -68,13 +68,14 @@ export async function collectFilesFromDrop(
   return files;
 }
 
-const ALLOWED_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf"];
+const ALLOWED_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf", ".ttc", ".otc"];
 const ACCEPT_EXTENSIONS = ALLOWED_EXTENSIONS.join(",");
 const ALLOWED_MIME_TYPES = new Set([
   "font/woff2",
   "font/woff",
   "font/ttf",
   "font/otf",
+  "font/collection",
   "application/font-woff2",
   "application/font-woff",
   "application/x-font-ttf",

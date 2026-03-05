@@ -9,4 +9,11 @@ declare module "Types" {
     disabledCodePoints: Record<string, boolean>;
     collapsedGroups: Record<string, boolean>;
   };
+
+  type TFontsState = {
+    fonts: Record<string, TFont>;
+    selectedFontId: string | null;
+    parsedFonts: Record<string, TParsedFont>;
+    parsingFonts: Record<string, boolean>;
+  };
 }

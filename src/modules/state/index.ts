@@ -1,14 +1,11 @@
 import { createStore, produce } from "solid-js/store";
 
-import {
-  parseFontInWorker,
-  prioritizeFont,
-} from "~/modules/fonts/parserWorker";
+import { parseFontInWorker, prioritizeFont } from "~/modules/fonts/parser";
 import { fontsPredicate } from "~/modules/fonts/utils";
 
-import type { TFont, TParsedFont } from "Types";
+import type { TFont, TFontsState, TParsedFont } from "Types";
 
-const FONT_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf"];
+const FONT_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf", ".ttc", ".otc"];
 
 const normalizeName = (fileName: string): string => {
   let name = fileName;
@@ -27,6 +24,7 @@ const MIME_TO_EXT: Record<string, string> = {
   "font/woff": "woff",
   "font/ttf": "ttf",
   "font/otf": "otf",
+  "font/collection": "ttc",
   "application/font-woff2": "woff2",
   "application/font-woff": "woff",
   "application/x-font-ttf": "ttf",
@@ -52,13 +50,6 @@ const createFontFromFile = (file: File): TFont => ({
   collapsedGroups: {},
 });
 
-type TFontsState = {
-  fonts: Record<string, TFont>;
-  selectedFontId: string | null;
-  parsedFonts: Record<string, TParsedFont>;
-  parsingFonts: Record<string, boolean>;
-};
-
 const [store, setStore] = createStore<TFontsState>({
   fonts: {},
   selectedFontId: null,
@@ -79,12 +70,7 @@ const addFonts = (files: File[]) => {
     newFonts.push(font);
     existingKeys.add(file.name);
 
-    font.file.arrayBuffer().then((buffer) => {
-      const face = new FontFace(font.id, buffer);
-      face.load().then((loaded) => {
-        document.fonts.add(loaded);
-      });
-    });
+    registerFontFace(font);
   }
 
   setStore(
@@ -125,13 +111,60 @@ const selectFont = (fontId: string) => {
   }
 };
 
+const createFontForCollectionEntry = (
+  parsed: TParsedFont,
+  source: TFont
+): TFont => ({
+  id: crypto.randomUUID(),
+  name: parsed.info.fullName,
+  fileName: source.fileName,
+  size: source.size,
+  extension: source.extension,
+  file: source.file,
+  disabledCodePoints: {},
+  collapsedGroups: {},
+});
+
+const registerFontFace = (font: TFont) => {
+  font.file.arrayBuffer().then((buffer) => {
+    const face = new FontFace(font.id, buffer);
+    face.load().then((loaded) => {
+      document.fonts.add(loaded);
+    });
+  });
+};
+
 const loadParsedFont = async (font: TFont) => {
   if (store.parsedFonts[font.id] || store.parsingFonts[font.id]) return;
 
   setStore("parsingFonts", font.id, true);
   try {
-    const parsed = await parseFontInWorker(font.id, font.file);
-    setStore("parsedFonts", font.id, parsed);
+    const parsedFonts = await parseFontInWorker(font.id, font.file);
+    const [first, ...rest] = parsedFonts;
+
+    // Update the original font's name from parsed metadata and store its parsed data
+    setStore("fonts", font.id, "name", first.info.fullName);
+    setStore("parsedFonts", font.id, first);
+
+    // For font collections (TTC/OTC), create new font entries for additional fonts
+    if (rest.length > 0) {
+      const extraFonts = rest.map((parsed) =>
+        createFontForCollectionEntry(parsed, font)
+      );
+
+      setStore(
+        produce((prev) => {
+          for (const extra of extraFonts) {
+            prev.fonts[extra.id] = extra;
+          }
+        })
+      );
+
+      for (let i = 0; i < extraFonts.length; i++) {
+        setStore("parsedFonts", extraFonts[i].id, rest[i]);
+        registerFontFace(extraFonts[i]);
+      }
+    }
   } catch (error) {
     // Log parsing errors for debugging
     // eslint-disable-next-line no-console

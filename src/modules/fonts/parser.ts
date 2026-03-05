@@ -1,76 +1,98 @@
-import { create } from "fontkit";
+import type { TParsedFont } from "Types";
 
-import { getCategoryForCodePoint, GLYPH_CATEGORIES } from "./categories";
-import { getFeatureName } from "./features";
-
-import type { TFontInfo, TGlyphGroup, TParsedFont } from "Types";
-
-const glyphNameRegEx = /^u.*\d+/;
-
-/**
- * Parse font from an ArrayBuffer (e.g. in a worker).
- */
-export const parseFontFromBuffer = (buffer: ArrayBuffer): TParsedFont => {
-  const result = create(new Uint8Array(buffer) as unknown as Buffer);
-  const font = "fonts" in result ? result.fonts[0] : result;
-
-  const info: TFontInfo = {
-    familyName: font.familyName ?? "Unknown",
-    styleName: font.subfamilyName ?? "Regular",
-    fullName: font.fullName ?? font.familyName ?? "Unknown",
-    version: String(font.version ?? ""),
-    bbox: {
-      minX: font.bbox.minX,
-      minY: font.bbox.minY,
-      maxX: font.bbox.maxX,
-      maxY: font.bbox.maxY,
-      width: font.bbox.width,
-      height: font.bbox.height,
-    },
-    isVariable: Object.keys(font.variationAxes ?? {}).length > 0,
-  };
-
-  const groups: Record<string, TGlyphGroup> = GLYPH_CATEGORIES.reduce(
-    (acc, category) => {
-      acc[category.id] = {
-        category,
-        glyphs: [],
-      };
-      return acc;
-    },
-    {} as Record<string, TGlyphGroup>
-  );
-
-  const glyphCodePoints: Record<number, number> = {};
-  if (font.characterSet) {
-    for (const codePoint of font.characterSet) {
-      const glyph = font.glyphForCodePoint(codePoint);
-      if (!glyph) continue;
-
-      glyphCodePoints[glyph.id] = codePoint;
-
-      const category = getCategoryForCodePoint(codePoint);
-      groups[category.id].glyphs.push({
-        id: glyph.id,
-        codePoints: [codePoint],
-        name: glyphNameRegEx.test(glyph.name) ? undefined : glyph.name,
-        categoryId: category.id,
-        path: glyph.path.toSVG(),
-        advanceWidth: glyph.advanceWidth,
-      });
-    }
-  }
-
-  return {
-    totalGlyphs: font.numGlyphs,
-    groups: Object.values(groups),
-    info,
-    features: (font.availableFeatures ?? []).map((tag: string) => ({
-      tag,
-      name: getFeatureName(tag),
-    })),
-  };
+type TParseRequest = {
+  fontId: string;
+  file: File;
 };
 
-export const formatCodePoint = (codePoint: number): string =>
-  `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`;
+type TParseResponse = {
+  fontId: string;
+  parsed?: TParsedFont[];
+  error?: string;
+};
+
+type TQueueItem = {
+  fontId: string;
+  file: File;
+};
+
+type TPendingCallbacks = {
+  resolve: (parsed: TParsedFont[]) => void;
+  reject: (error: Error) => void;
+};
+
+const queue: TQueueItem[] = [];
+const pending = new Map<string, TPendingCallbacks>();
+let processing = false;
+let worker: Worker | null = null;
+
+const getWorker = (): Worker => {
+  if (!worker) {
+    worker = new Worker(
+      new URL("../../workers/parser.worker.ts", import.meta.url),
+      { type: "module" }
+    );
+    worker.onmessage = (e: MessageEvent<TParseResponse>) => {
+      const callbacks = pending.get(e.data.fontId);
+      if (callbacks) {
+        pending.delete(e.data.fontId);
+        if (e.data.error) {
+          callbacks.reject(new Error(e.data.error));
+        } else {
+          callbacks.resolve(e.data.parsed!);
+        }
+      }
+      processing = false;
+      processNext();
+    };
+    worker.onerror = () => {
+      for (const [, callbacks] of pending) {
+        callbacks.reject(new Error("Font parser worker crashed"));
+      }
+      pending.clear();
+      processing = false;
+      worker = null;
+    };
+  }
+  return worker;
+};
+
+const processNext = () => {
+  if (processing || queue.length === 0) return;
+
+  processing = true;
+  const item = queue.shift();
+
+  if (!item) {
+    processing = false;
+    return;
+  }
+  getWorker().postMessage(item satisfies TParseRequest);
+};
+
+/**
+ * Enqueue a font file for parsing. The returned promise resolves
+ * with an array of parsed fonts (multiple for font collections like TTC/OTC).
+ */
+export const parseFontInWorker = (
+  fontId: string,
+  file: File
+): Promise<TParsedFont[]> =>
+  new Promise((resolve, reject) => {
+    pending.set(fontId, { resolve, reject });
+    queue.push({ fontId, file });
+
+    processNext();
+  });
+
+/**
+ * Move a font to the front of the queue so it is parsed next.
+ * Has no effect if the font is already being parsed or is not queued.
+ */
+export const prioritizeFont = (fontId: string): void => {
+  const idx = queue.findIndex((item) => item.fontId === fontId);
+  if (idx > 0) {
+    const [item] = queue.splice(idx, 1);
+    queue.unshift(item);
+  }
+};

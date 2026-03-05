@@ -1,7 +1,6 @@
 import { Component, createMemo, Show } from "solid-js";
 
-import { formatCodePoint } from "~/modules/fonts/parser";
-import { useCurrentFont } from "~/modules/fonts/utils";
+import { formatCodePoint, useCurrentFont } from "~/modules/fonts/utils";
 import { toggleGlyph } from "~/modules/state";
 
 import styles from "./GlyphCell.module.css";

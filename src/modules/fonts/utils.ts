@@ -33,3 +33,6 @@ export const estimateSize = (
   );
   return { bytes: estimatedBytes, kb: Math.round(estimatedBytes / 1024) };
 };
+
+export const formatCodePoint = (codePoint: number): string =>
+  `U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`;
