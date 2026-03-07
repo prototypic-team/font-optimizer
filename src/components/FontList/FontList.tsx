@@ -1,15 +1,15 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
 import { cn } from "~/glyph/cn";
-import { fontsPredicate } from "~/modules/fonts/utils";
 import { selectFont, store } from "~/modules/state";
+import { boolean } from "~/utils/boolean";
 import { formatFileSize } from "~/utils/format";
 
 import styles from "./FontList.module.css";
 
 export const FontList: Component = () => {
   const fonts = createMemo(() =>
-    Object.values(store.fonts).sort(fontsPredicate)
+    store.fontOrder.map((id) => store.fonts[id]).filter(boolean)
   );
 
   return (

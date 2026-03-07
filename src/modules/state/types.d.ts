@@ -12,6 +12,7 @@ declare module "Types" {
 
   type TFontsState = {
     fonts: Record<string, TFont>;
+    fontOrder: string[];
     selectedFontId: string | null;
     parsedFonts: Record<string, TParsedFont>;
     parsingFonts: Record<string, boolean>;

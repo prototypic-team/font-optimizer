@@ -1,7 +1,6 @@
 import { createStore, produce } from "solid-js/store";
 
 import { parseFontInWorker, prioritizeFont } from "~/modules/fonts/parser";
-import { fontsPredicate } from "~/modules/fonts/utils";
 
 import type { TFont, TFontsState, TParsedFont } from "Types";
 
@@ -52,6 +51,7 @@ const createFontFromFile = (file: File): TFont => ({
 
 const [store, setStore] = createStore<TFontsState>({
   fonts: {},
+  fontOrder: [],
   selectedFontId: null,
   parsedFonts: {},
   parsingFonts: {},
@@ -77,10 +77,10 @@ const addFonts = (files: File[]) => {
     produce((prev) => {
       for (const font of newFonts) {
         prev.fonts[font.id] = font;
+        prev.fontOrder.push(font.id);
       }
       if (!prev.selectedFontId) {
-        const sortedFonts = Object.values(prev.fonts).sort(fontsPredicate);
-        prev.selectedFontId = sortedFonts[0].id;
+        prev.selectedFontId = newFonts[0].id;
       }
     })
   );
@@ -154,8 +154,11 @@ const loadParsedFont = async (font: TFont) => {
 
       setStore(
         produce((prev) => {
-          for (const extra of extraFonts) {
-            prev.fonts[extra.id] = extra;
+          const parentIndex = prev.fontOrder.indexOf(font.id);
+          const insertAt = parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
+          for (let i = 0; i < extraFonts.length; i++) {
+            prev.fonts[extraFonts[i].id] = extraFonts[i];
+            prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
           }
         })
       );
