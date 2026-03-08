@@ -10,5 +10,8 @@ export default defineConfig({
   },
   build: {
     target: "esnext",
+    rollupOptions: {
+      input: ["index.html", "privacy.html", "terms.html"],
+    },
   },
 });

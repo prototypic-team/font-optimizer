@@ -7,8 +7,8 @@
   justify-content: center;
   width: 100vw;
   width: 100dvw;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: calc(100vh - 32px);
+  min-height: calc(100dvh - 32px);
 
   transition:
     background-color var(--transition-basic),
@@ -30,10 +30,6 @@
 
   content: "";
   pointer-events: none;
-}
-
-.zone.dragging {
-  background-color: hsl(var(--color-focus) / 12%);
 }
 
 .empty {
@@ -122,4 +118,9 @@
 .zone.dragging .dropHint {
   background-color: var(--color-focus);
   opacity: 1;
+}
+
+.zone footer {
+  width: 100%;
+  margin-top: auto;
 }

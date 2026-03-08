@@ -123,5 +123,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 2px;
+}
+
+.group:not(:last-of-type) .grid {
   padding-bottom: 32px;
 }

@@ -1,6 +1,5 @@
 import { Component, createMemo, createSignal, JSX, Show } from "solid-js";
 
-import { cn } from "~/glyph";
 import { addFonts, store } from "~/modules/state";
 import { collectFilesFromDrop, useFilePicker } from "~/utils/useFilePicker";
 
@@ -60,7 +59,8 @@ export const DropZone: Component<Props> = (props) => {
 
   return (
     <div
-      class={cn(styles.zone, dragging() && styles.dragging)}
+      class={styles.zone}
+      classList={{ [styles.dragging]: dragging() }}
       tabIndex={isEmpty() ? 0 : undefined}
       role={isEmpty() ? "button" : undefined}
       aria-label={
