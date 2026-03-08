@@ -1,6 +1,5 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
-import { cn } from "~/glyph/cn";
 import { selectFont, store } from "~/modules/state";
 import { boolean } from "~/utils/boolean";
 import { formatFileSize } from "~/utils/format";
@@ -18,10 +17,12 @@ export const FontList: Component = () => {
         <For each={fonts()}>
           {(font) => (
             <button
-              class={cn(
-                styles.item,
-                store.selectedFontId === font.id && styles.selected
-              )}
+              class={styles.item}
+              classList={{
+                [styles.selected]: store.selectedFontId === font.id,
+                [styles.parsed]: !!store.parsedFonts[font.id],
+                pulse: store.parsingFonts[font.id],
+              }}
               onClick={() => selectFont(font.id)}
             >
               <span

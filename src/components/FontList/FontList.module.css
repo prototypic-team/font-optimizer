@@ -27,6 +27,7 @@
   border: none;
   border-radius: var(--border-radius-controls);
   cursor: pointer;
+  opacity: 0.35;
 
   transition: background-color var(--transition-basic);
 }
@@ -54,6 +55,11 @@
   color: color-mix(in oklab, currentcolor 40%, transparent);
   font-size: var(--font-size-small);
 }
+
+.parsed {
+  opacity: 1;
+}
+
 
 @media (width <= 600px) {
   .list {

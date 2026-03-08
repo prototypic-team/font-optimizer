@@ -40,3 +40,12 @@
   gap: 4px;
   padding: 0 16px;
 }
+
+.header h1 {
+  opacity: 0.35;
+}
+
+.header h1.parsed {
+  opacity: 1;
+}
+

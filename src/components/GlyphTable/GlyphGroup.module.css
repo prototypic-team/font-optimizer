@@ -123,4 +123,5 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: 2px;
+  padding-bottom: 32px;
 }

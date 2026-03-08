@@ -4,10 +4,11 @@ import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
 import { formatFileSize } from "~/utils/format";
 
 import { GlyphGroup } from "./GlyphGroup";
+import { GlyphSkeleton } from "./GlyphSkeleton";
 import styles from "./GlyphTable.module.css";
 
 export const GlyphTable: Component = () => {
-  const { base, parsed } = useCurrentFont();
+  const { base, parsed, isParsing } = useCurrentFont();
 
   const disabledGlyphsCount = createMemo(() => {
     if (!base() || !parsed()) return 0;
@@ -32,7 +33,13 @@ export const GlyphTable: Component = () => {
     <Show when={base()}>
       <div class={styles.table}>
         <header class={styles.header}>
-          <h1 style={{ "font-family": `"${base()!.id}", sans-serif` }}>
+          <h1
+            classList={{
+              [styles.parsed]: !!parsed(),
+              pulse: isParsing(),
+            }}
+            style={{ "font-family": `"${base()!.id}", sans-serif` }}
+          >
             {base()!.name}
           </h1>
           {parsed() && (
@@ -49,15 +56,23 @@ export const GlyphTable: Component = () => {
             </div>
           )}
         </header>
-        <Show when={parsed()}>
-          <div class={styles.groups}>
+        <div class={styles.groups}>
+          <Show
+            when={parsed()}
+            fallback={
+              <>
+                <GlyphSkeleton count={14} />
+                <GlyphSkeleton count={11} />
+              </>
+            }
+          >
             <For each={parsed()!.groups}>
               {(group) =>
                 group.glyphs.length > 0 ? <GlyphGroup group={group} /> : null
               }
             </For>
-          </div>
-        </Show>
+          </Show>
+        </div>
       </div>
     </Show>
   );
