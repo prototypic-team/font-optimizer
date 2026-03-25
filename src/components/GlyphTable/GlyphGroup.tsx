@@ -53,7 +53,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
   );
 
   const isCollapsed = createMemo(
-    () => base()?.collapsedGroups?.[props.group.category.id] ?? false
+    () => base()?.collapsedGroups?.[props.group.category.id] ?? true
   );
 
   createEffect(() => {

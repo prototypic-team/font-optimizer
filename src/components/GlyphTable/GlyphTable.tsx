@@ -1,6 +1,8 @@
-import { Component, createMemo, For, Show } from "solid-js";
+import { Component, createMemo, createSignal, For, Show } from "solid-js";
 
+import { Button } from "~/glyph";
 import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
+import { exportSelectedFont } from "~/modules/state";
 import { formatFileSize } from "~/utils/format";
 
 import { GlyphGroup } from "./GlyphGroup";
@@ -9,6 +11,7 @@ import styles from "./GlyphTable.module.css";
 
 export const GlyphTable: Component = () => {
   const { base, parsed, isParsing } = useCurrentFont();
+  const [exporting, setExporting] = createSignal(false);
 
   const disabledGlyphsCount = createMemo(() => {
     if (!base() || !parsed()) return 0;
@@ -22,12 +25,22 @@ export const GlyphTable: Component = () => {
   const estimatedSize = createMemo(() => {
     if (!parsed() || !base()) return 0;
 
-    return estimateSize(
-      disabledGlyphsCount(),
-      parsed()!.totalGlyphs,
-      base()!.size
-    ).bytes;
+    return estimateSize(glyphCount(), parsed()!.totalGlyphs, base()!.size)
+      .bytes;
   });
+
+  const canExport = createMemo(() => parsed() && glyphCount() > 0);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await exportSelectedFont();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <Show when={base()}>
@@ -44,15 +57,25 @@ export const GlyphTable: Component = () => {
           </h1>
           {parsed() && (
             <div class={styles.fontInfo}>
-              {disabledGlyphsCount()
-                ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
-                : glyphCount()}{" "}
-              glyphs
-              <span class={styles.fontFileSize}>
+              <div class={styles.fontMeta}>
                 {disabledGlyphsCount()
-                  ? `${formatFileSize(base()!.size)} → ${formatFileSize(base()!.size - estimatedSize())}`
-                  : formatFileSize(base()!.size)}
-              </span>
+                  ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
+                  : glyphCount()}{" "}
+                glyphs
+                <span class={styles.fontFileSize}>
+                  {disabledGlyphsCount()
+                    ? `${formatFileSize(base()!.size)} → ${formatFileSize(estimatedSize())}`
+                    : formatFileSize(base()!.size)}
+                </span>
+              </div>
+              <Button
+                kind="primary"
+                loading={exporting()}
+                disabled={!canExport()}
+                onClick={handleExport}
+              >
+                Export
+              </Button>
             </div>
           )}
         </header>
@@ -61,8 +84,13 @@ export const GlyphTable: Component = () => {
             when={parsed()}
             fallback={
               <>
-                <GlyphSkeleton count={14} />
-                <GlyphSkeleton count={11} />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
+                <GlyphSkeleton />
               </>
             }
           >

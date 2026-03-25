@@ -5,13 +5,3 @@
   background-color: color-mix(in oklab, var(--color-primary) 5%, transparent);
   border-radius: var(--border-radius-controls);
 }
-
-.glyph {
-  width: 100%;
-
-  aspect-ratio: 1;
-}
-
-.info {
-  height: 32px;
-}

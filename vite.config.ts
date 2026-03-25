@@ -5,6 +5,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [devtools(), tsconfigPaths(), solidPlugin()],
+  worker: {
+    format: "es",
+    plugins: () => [tsconfigPaths()],
+  },
   server: {
     port: 3000,
   },

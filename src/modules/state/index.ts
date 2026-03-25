@@ -1,6 +1,7 @@
 import { createStore, produce } from "solid-js/store";
 
-import { parseFontInWorker, prioritizeFont } from "~/modules/fonts/parser";
+import { exportFont } from "~/modules/exporter/export";
+import { parseFontInWorker, prioritizeFont } from "~/modules/parser/parse";
 
 import type { TFont, TFontsState, TParsedFont } from "Types";
 
@@ -155,7 +156,8 @@ const loadParsedFont = async (font: TFont) => {
       setStore(
         produce((prev) => {
           const parentIndex = prev.fontOrder.indexOf(font.id);
-          const insertAt = parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
+          const insertAt =
+            parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
           for (let i = 0; i < extraFonts.length; i++) {
             prev.fonts[extraFonts[i].id] = extraFonts[i];
             prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
@@ -205,11 +207,36 @@ const toggleGroup = (fontId: string, groupId: string) => {
 };
 
 const toggleGroupCollapsed = (fontId: string, groupId: string) => {
-  setStore("fonts", fontId, "collapsedGroups", groupId, (prev) => !prev);
+  // Match GlyphGroup: missing key means collapsed (same as `?? true` in UI).
+  setStore("fonts", fontId, "collapsedGroups", groupId, (prev = true) => !prev);
+};
+
+const exportSelectedFont = async (): Promise<void> => {
+  const fontId = store.selectedFontId;
+  const font = fontId ? store.fonts[fontId] : undefined;
+  const parsed = fontId ? store.parsedFonts[fontId] : undefined;
+
+  if (!font || !parsed) {
+    throw new Error("No font selected or font not yet parsed");
+  }
+
+  const codePoints: number[] = [];
+  for (const group of parsed.groups) {
+    for (const glyph of group.glyphs) {
+      const key = glyph.codePoints.join(",");
+      if (!font.disabledCodePoints[key]) {
+        codePoints.push(...glyph.codePoints);
+      }
+    }
+  }
+
+  const buffer = await font.file.arrayBuffer();
+  await exportFont(buffer, codePoints, font.name);
 };
 
 export {
   addFonts,
+  exportSelectedFont,
   selectFont,
   store,
   toggleGlyph,
