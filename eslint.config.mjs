@@ -46,7 +46,7 @@ export default [
 			parser: tsParser
 		},
 		rules: {
-			'no-console': 'error',
+			'no-console': ['error', { allow: ['warn', 'error'] }],
 			'no-debugger': 'error',
 			'no-shadow': 'error',
 			'no-irregular-whitespace': 'warn',
