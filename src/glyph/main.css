@@ -11,6 +11,13 @@
 html {
   min-height: 100vh;
   min-height: 100dvh;
+
+  background-color: var(--color-base);
+}
+
+html:has(button#clear-all[data-focus-visible="true"]:not(:disabled)),
+html:has(button#clear-all:hover:not(:disabled)) {
+  --color-base: var(--color-danger);
 }
 
 body {
@@ -22,8 +29,6 @@ body {
   font-size: var(--font-size-basic);
   font-family: pt-ui, sans-serif;
   line-height: 1.4;
-
-  background-color: var(--color-base);
 }
 
 p,

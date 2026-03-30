@@ -1,6 +1,7 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
-import { selectFont, store } from "~/modules/state";
+import { Button } from "~/glyph/Button/Button";
+import { clearFonts, selectFont, store } from "~/modules/state";
 import { boolean } from "~/utils/boolean";
 import { formatFileSize } from "~/utils/format";
 
@@ -39,6 +40,9 @@ export const FontList: Component = () => {
             </button>
           )}
         </For>
+        <Button id="clear-all" class={styles.clearAll} onClick={clearFonts}>
+          Clear all
+        </Button>
       </nav>
     </Show>
   );

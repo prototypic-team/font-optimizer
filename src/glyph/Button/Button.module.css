@@ -46,14 +46,16 @@
 }
 
 .default {
-  color: var(--color-primary);
+  color: var(--color-secondary);
 
-  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  background-color: transparent;
   border-color: transparent;
 }
 
 .default:hover:not(:disabled) {
-  background-color: color-mix(in oklab, var(--color-primary) 14%, transparent);
+  color: var(--color-primary);
+
+  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
   border-color: transparent;
 }
 

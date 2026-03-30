@@ -126,6 +126,19 @@ const addFonts = (files: File[]) => {
   schedulePersistSnapshot();
 };
 
+const clearFonts = () => {
+  setStore(
+    produce((prev) => {
+      prev.fonts = {};
+      prev.fontOrder = [];
+      prev.selectedFontId = null;
+      prev.parsedFonts = {};
+      prev.parsingFonts = {};
+    })
+  );
+  schedulePersistSnapshot();
+};
+
 const selectFont = (fontId: string) => {
   setStore("selectedFontId", fontId);
   schedulePersistSnapshot();
@@ -478,6 +491,7 @@ const hydrateParsedFontsForGroup = async (ids: string[]): Promise<void> => {
 
 export {
   addFonts,
+  clearFonts,
   exportSelectedFont,
   selectFont,
   store,

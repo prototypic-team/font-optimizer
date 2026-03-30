@@ -4,6 +4,7 @@
   --color-secondary: rgb(0 0 0 / 40%);
   --color-divider: color-mix(in oklab, var(--color-primary) 8%, transparent);
   --color-focus: hsl(48 98% 58%);
+  --color-danger: hsl(0 70% 46%);
 
   /* Font sizes */
   --font-size-title: 32px;
@@ -56,5 +57,6 @@
     --color-primary: #fefefe;
     --color-secondary: rgb(255 255 255 / 60%);
     --color-focus: hsl(42 95% 59%);
+    --color-danger: hsl(0 60% 35%);
   }
 }

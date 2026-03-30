@@ -60,6 +60,19 @@
   opacity: 1;
 }
 
+.clearAll {
+  margin-top: auto;
+}
+
+button.clearAll:hover:not(:disabled) {
+  background-color: transparent;
+}
+
+button.clearAll[data-focus-visible="true"]:not(:disabled) {
+  background-color: transparent;
+  outline: var(--focus-outline-style) var(--color-primary);
+}
+
 @media (width <= 600px) {
   .list {
     flex-direction: row;
