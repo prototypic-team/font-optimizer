@@ -1,4 +1,4 @@
-import { Component, createMemo, createSignal, JSX, Show } from "solid-js";
+import { Component, createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
 import { addFonts, store } from "~/modules/state";
 import { collectFilesFromDrop, useFilePicker } from "~/utils/useFilePicker";
@@ -15,6 +15,18 @@ export const DropZone: Component<Props> = (props) => {
 
   const { openFilePicker, handleFileList } = useFilePicker({
     onFilesSelected: addFonts,
+  });
+
+  onMount(() => {
+    const isMac = navigator.platform.startsWith("Mac");
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "KeyU" && (isMac ? e.metaKey : e.ctrlKey)) {
+        e.preventDefault();
+        openFilePicker();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    onCleanup(() => window.removeEventListener("keydown", handleGlobalKeyDown));
   });
 
   const handleClick: JSX.EventHandler<HTMLDivElement, MouseEvent> = () => {
