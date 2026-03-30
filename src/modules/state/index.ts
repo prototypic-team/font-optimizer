@@ -82,15 +82,18 @@ const [store, setStore] = createStore<TFontsState>({
 const addFonts = (files: File[]) => {
   const newFiles = [...files];
 
-  const existingKeys = new Set(
-    Object.values(store.fonts).map((f) => f.fileName)
+  // Deduplicate by normalized name (filename without extension) to prevent
+  // adding the same font in multiple formats (e.g. .woff2 + .ttf of same face).
+  const existingNormalizedNames = new Set(
+    Object.values(store.fonts).map((f) => normalizeName(f.fileName))
   );
   const newFonts: TFont[] = [];
   for (const file of newFiles) {
-    if (existingKeys.has(file.name)) continue;
+    const normalizedName = normalizeName(file.name);
+    if (existingNormalizedNames.has(normalizedName)) continue;
     const font = createFontFromFile(file);
     newFonts.push(font);
-    existingKeys.add(file.name);
+    existingNormalizedNames.add(normalizedName);
 
     registerFontFace(font);
   }
@@ -165,34 +168,64 @@ const loadParsedFont = async (font: TFont) => {
   setStore("parsingFonts", font.id, true);
   try {
     const parsedFonts = await parseFontInWorker(font.id, font.file);
-    const [first, ...rest] = parsedFonts;
+    let [first, ...rest] = parsedFonts;
+
+    // Build a set of full names already in the store (excluding this font's
+    // own placeholder so it doesn't match itself).
+    const existingNames = new Set(
+      Object.entries(store.fonts)
+        .filter(([id]) => id !== font.id)
+        .map(([, f]) => f.name)
+    );
+
+    // If the primary face duplicates an existing font, discard the placeholder
+    // and bail out — nothing useful to add.
+    if (existingNames.has(first.info.fullName)) {
+      setStore(
+        produce((prev) => {
+          delete prev.fonts[font.id];
+          delete prev.parsingFonts[font.id];
+          prev.fontOrder = prev.fontOrder.filter((id) => id !== font.id);
+          if (prev.selectedFontId === font.id) {
+            prev.selectedFontId = prev.fontOrder[0] ?? null;
+          }
+        })
+      );
+      return;
+    }
 
     // Update the original font's name from parsed metadata and store its parsed data
     setStore("fonts", font.id, "name", first.info.fullName);
     setStore("parsedFonts", font.id, first);
+    existingNames.add(first.info.fullName);
 
-    // For font collections (TTC/OTC), create new font entries for additional fonts
+    // For font collections (TTC/OTC), create new font entries for additional fonts,
+    // skipping any faces whose full name is already present in the store.
+    rest = rest.filter(
+      (parsed) => !existingNames.has(parsed.info.fullName)
+    );
     if (rest.length > 0) {
       const extraFonts = rest.map((parsed) =>
-        createFontForCollectionEntry(parsed, font)
-      );
+          createFontForCollectionEntry(parsed, font)
+        );
 
-      setStore(
-        produce((prev) => {
-          const parentIndex = prev.fontOrder.indexOf(font.id);
-          const insertAt =
-            parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
-          for (let i = 0; i < extraFonts.length; i++) {
-            prev.fonts[extraFonts[i].id] = extraFonts[i];
-            prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
-          }
-        })
-      );
+        setStore(
+          produce((prev) => {
+            const parentIndex = prev.fontOrder.indexOf(font.id);
+            const insertAt =
+              parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
+            for (let i = 0; i < extraFonts.length; i++) {
+              prev.fonts[extraFonts[i].id] = extraFonts[i];
+              prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
+            }
+          })
+        );
 
       for (let i = 0; i < extraFonts.length; i++) {
         setStore("parsedFonts", extraFonts[i].id, rest[i]);
         registerFontFace(extraFonts[i]);
       }
+      schedulePersistSnapshot();
     }
   } catch (error) {
     console.error("Font parsing failed:", error);
