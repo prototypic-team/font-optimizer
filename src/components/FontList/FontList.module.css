@@ -32,6 +32,11 @@
   transition: background-color var(--transition-basic);
 }
 
+.item > div {
+  display: grid;
+  gap: 2px;
+}
+
 .item:hover:not(.selected) {
   background-color: var(--color-divider);
 }
@@ -60,15 +65,58 @@
   opacity: 1;
 }
 
-.clearAll {
-  margin-top: auto;
+.addFonts {
+  display: flex;
+  gap: 4px;
+  margin-top: 40px;
+  padding-left: 4px;
+
+  transform: translateX(-0.3em);
+  opacity: 1;
 }
 
-button.clearAll:hover:not(:disabled) {
+.addFonts::before {
+  content: "+";
+}
+
+.addFonts:hover {
+  background-color: var(--color-divider);
+}
+
+.clearAll {
+  position: relative;
+
+  display: flex;
+  gap: 4px;
+  margin-top: auto;
+  padding-right: 32px;
+  padding-bottom: 22px;
+  padding-left: calc(28px);
+
+  border-radius: 0;
+  transform: translate(-16px, 16px);
+  opacity: 1;
+}
+
+.clearAll::before {
+  position: absolute;
+  inset: 0 20px 16px 16px;
+  z-index: 1;
+
+  border-radius: var(--border-radius-controls);
+
+  content: "";
+}
+
+.clearAll:hover:not(.selected) {
   background-color: transparent;
 }
 
-button.clearAll[data-focus-visible="true"]:not(:disabled) {
+.clearAll:focus-visible {
+  outline: none;
+}
+
+.clearAll:focus-visible::before {
   background-color: transparent;
   outline: var(--focus-outline-style) var(--color-primary);
 }

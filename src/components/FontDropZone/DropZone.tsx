@@ -1,6 +1,7 @@
 import { Component, createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
 
-import { addFonts, store } from "~/modules/state";
+import { addFonts, clearFonts, store } from "~/modules/state";
+import { isMac } from "~/utils/platform";
 import { collectFilesFromDrop, useFilePicker } from "~/utils/useFilePicker";
 
 import styles from "./DropZone.module.css";
@@ -18,11 +19,17 @@ export const DropZone: Component<Props> = (props) => {
   });
 
   onMount(() => {
-    const isMac = navigator.platform.startsWith("Mac");
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (e.code === "KeyU" && (isMac ? e.metaKey : e.ctrlKey)) {
         e.preventDefault();
         openFilePicker();
+      }
+      const isClearShortcut = isMac
+        ? e.metaKey && (e.code === "Delete" || e.code === "Backspace")
+        : e.ctrlKey && e.code === "Delete";
+      if (isClearShortcut && Object.keys(store.fonts).length > 0) {
+        e.preventDefault();
+        clearFonts();
       }
     };
     window.addEventListener("keydown", handleGlobalKeyDown);
