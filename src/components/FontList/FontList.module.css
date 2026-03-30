@@ -21,6 +21,7 @@
   padding: 6px 12px;
 
   color: var(--color-primary);
+  font-size: var(--font-size-basic);
   text-align: left;
 
   background-color: transparent;
@@ -57,7 +58,7 @@
 }
 
 .size {
-  color: color-mix(in oklab, currentcolor 40%, transparent);
+  /* color: color-mix(in oklab, currentcolor 40%, transparent); */
   font-size: var(--font-size-small);
 }
 
@@ -68,7 +69,7 @@
 .addFonts {
   display: flex;
   gap: 4px;
-  margin-top: 40px;
+  margin-top: 12px;
   padding-left: 4px;
 
   transform: translateX(-0.3em);
@@ -79,8 +80,14 @@
   content: "+";
 }
 
-.addFonts:hover {
+.addFonts:hover:not(.selected) {
+  color: var(--color-primary);
+
   background-color: var(--color-divider);
+}
+
+.addFonts .size {
+  color: color-mix(in oklab, var(--color-primary) 40%, transparent);
 }
 
 .clearAll {
@@ -89,9 +96,7 @@
   display: flex;
   gap: 4px;
   margin-top: auto;
-  padding-right: 32px;
-  padding-bottom: 22px;
-  padding-left: calc(28px);
+  padding: 32px 32px 22px 28px;
 
   border-radius: 0;
   transform: translate(-16px, 16px);
@@ -100,7 +105,7 @@
 
 .clearAll::before {
   position: absolute;
-  inset: 0 20px 16px 16px;
+  inset: 20px 20px 16px 16px;
   z-index: 1;
 
   border-radius: var(--border-radius-controls);
@@ -119,6 +124,10 @@
 .clearAll:focus-visible::before {
   background-color: transparent;
   outline: var(--focus-outline-style) var(--color-primary);
+}
+
+.clearAll .size {
+  color: color-mix(in oklab, var(--color-primary) 40%, transparent);
 }
 
 @media (width <= 600px) {

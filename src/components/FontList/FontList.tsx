@@ -19,7 +19,7 @@ export const FontList: Component = () => {
   const { openFilePicker } = useFilePicker({ onFilesSelected: addFonts });
 
   return (
-    <Show when={fonts().length > 1}>
+    <Show when={fonts().length > 0}>
       <nav class={styles.list}>
         <For each={fonts()}>
           {(font) => (
