@@ -85,12 +85,14 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
     <section class={styles.group}>
       <header>
         <div class={"f fa-c g1"}>
-          <input
-            type="checkbox"
-            ref={checkboxRef}
-            id={checkboxId()}
-            onChange={() => toggleGroup(base()!.id, props.group.category.id)}
-          />
+          <div class={styles.checkbox}>
+            <input
+              type="checkbox"
+              ref={checkboxRef}
+              id={checkboxId()}
+              onChange={() => toggleGroup(base()!.id, props.group.category.id)}
+            />
+          </div>
           <label for={checkboxId()}>
             <h3>{props.group.category.name}</h3>
           </label>

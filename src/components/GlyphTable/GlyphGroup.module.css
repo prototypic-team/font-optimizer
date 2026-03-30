@@ -61,36 +61,58 @@
   opacity: 0;
 }
 
-.group > header input[type="checkbox"] {
+.checkbox {
+  position: relative;
+
+  flex-shrink: 0;
   width: 20px;
   height: 20px;
+}
 
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 12px;
+.checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+
   border: 1px solid color-mix(in oklab, var(--color-primary) 20%, transparent);
   border-radius: var(--border-radius-controls);
   cursor: pointer;
 
-  transition:
-    background-color var(--transition-active),
-    background-image var(--transition-active);
+  transition: background-color var(--transition-active);
 
   appearance: none;
 }
 
-.group > header input[type="checkbox"]:checked {
+.checkbox input[type="checkbox"]:checked,
+.checkbox input[type="checkbox"]:indeterminate {
   background-color: var(--color-primary);
-  background-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6L5 9L10 3' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
 }
 
-.group > header input[type="checkbox"]:indeterminate {
-  background-color: var(--color-primary);
-  background-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6H10' stroke='white' stroke-width='2' stroke-linecap='round'/></svg>");
-}
-
-.group > header input[type="checkbox"]:focus-visible {
+.checkbox input[type="checkbox"]:focus-visible {
   outline: var(--focus-outline);
+}
+
+.checkbox:has(input:is(:checked, :indeterminate))::before {
+  position: absolute;
+  inset: 0;
+
+  background-color: var(--color-base);
+
+  content: "";
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: 12px;
+
+  pointer-events: none;
+}
+
+.checkbox:has(input:checked)::before {
+  mask-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6L5 9L10 3' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+.checkbox:has(input:indeterminate)::before {
+  mask-image: url("data:image/svg+xml,<svg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M2 6H10' stroke='black' stroke-width='2' stroke-linecap='round'/></svg>");
 }
 
 .group h3 {
