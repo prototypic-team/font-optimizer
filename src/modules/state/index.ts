@@ -126,6 +126,21 @@ const addFonts = (files: File[]) => {
   schedulePersistSnapshot();
 };
 
+const removeFont = (fontId: string) => {
+  setStore(
+    produce((prev) => {
+      delete prev.fonts[fontId];
+      prev.fontOrder = prev.fontOrder.filter((id) => id !== fontId);
+      delete prev.parsedFonts[fontId];
+      delete prev.parsingFonts[fontId];
+      if (prev.selectedFontId === fontId) {
+        prev.selectedFontId = prev.fontOrder[0] ?? null;
+      }
+    })
+  );
+  schedulePersistSnapshot();
+};
+
 const clearFonts = () => {
   setStore(
     produce((prev) => {
@@ -181,6 +196,10 @@ const loadParsedFont = async (font: TFont) => {
   setStore("parsingFonts", font.id, true);
   try {
     const parsedFonts = await parseFontInWorker(font.id, font.file);
+
+    // Font was removed while the worker was parsing — discard results.
+    if (!store.fonts[font.id]) return;
+
     let [first, ...rest] = parsedFonts;
 
     // Build a set of full names already in the store (excluding this font's
@@ -493,6 +512,7 @@ export {
   addFonts,
   clearFonts,
   exportSelectedFont,
+  removeFont,
   selectFont,
   store,
   toggleGlyph,

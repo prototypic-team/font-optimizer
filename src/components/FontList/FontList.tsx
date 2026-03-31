@@ -1,7 +1,13 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
 import { cn } from "~/glyph";
-import { addFonts, clearFonts, selectFont, store } from "~/modules/state";
+import {
+  addFonts,
+  clearFonts,
+  removeFont,
+  selectFont,
+  store,
+} from "~/modules/state";
 import { boolean } from "~/utils/boolean";
 import { formatFileSize } from "~/utils/format";
 import { isMac } from "~/utils/platform";
@@ -23,27 +29,37 @@ export const FontList: Component = () => {
       <nav class={styles.list}>
         <For each={fonts()}>
           {(font) => (
-            <button
-              class={styles.item}
-              classList={{
-                [styles.selected]: store.selectedFontId === font.id,
-                [styles.parsed]: !!store.parsedFonts[font.id],
-                pulse: store.parsingFonts[font.id],
-              }}
-              onClick={() => selectFont(font.id)}
-            >
-              <span
-                class={styles.name}
-                style={{ "font-family": `"${font.id}", sans-serif` }}
+            <div class={styles.itemWrapper}>
+              <button
+                class={styles.item}
+                classList={{
+                  [styles.selected]: store.selectedFontId === font.id,
+                  [styles.parsed]: !!store.parsedFonts[font.id],
+                  pulse: store.parsingFonts[font.id],
+                }}
+                aria-label={`Select ${font.name}`}
+                onClick={() => selectFont(font.id)}
               >
-                {font.name}
-              </span>
-              <span class={styles.size}>
-                {[font.extension, formatFileSize(font.size)]
-                  .filter(Boolean)
-                  .join("・")}
-              </span>
-            </button>
+                <span
+                  class={styles.name}
+                  style={{ "font-family": `"${font.id}", sans-serif` }}
+                >
+                  {font.name}
+                </span>
+                <span class={styles.size}>
+                  {[font.extension, formatFileSize(font.size)]
+                    .filter(Boolean)
+                    .join("・")}
+                </span>
+              </button>
+              <button
+                class={styles.remove}
+                aria-label={`Remove ${font.name}`}
+                onClick={() => removeFont(font.id)}
+              >
+                ×
+              </button>
+            </div>
           )}
         </For>
         <button
@@ -52,9 +68,7 @@ export const FontList: Component = () => {
         >
           <div>
             <span class={styles.name}>Upload Fonts</span>
-            <span class={styles.size}>
-              {modKey} + U
-            </span>
+            <span class={styles.size}>{modKey} + U</span>
           </div>
         </button>
         <button
@@ -64,9 +78,7 @@ export const FontList: Component = () => {
         >
           <div>
             <span class={styles.name}>Clear all</span>
-            <span class={styles.size}>
-              {modKey} + Del
-            </span>
+            <span class={styles.size}>{modKey} + Del</span>
           </div>
         </button>
       </nav>

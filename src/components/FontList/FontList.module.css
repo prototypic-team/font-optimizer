@@ -16,6 +16,12 @@
   overflow-y: auto;
 }
 
+.itemWrapper {
+  position: relative;
+
+  width: 100%;
+}
+
 .item {
   display: inline-grid;
   padding: 6px 12px;
@@ -33,9 +39,61 @@
   transition: background-color var(--transition-basic);
 }
 
+.itemWrapper > .item {
+  width: 100%;
+  padding-right: 20px;
+}
+
 .item > div {
   display: grid;
   gap: 2px;
+}
+
+.remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+
+  color: var(--color-secondary);
+  font-size: var(--font-size-basic);
+  line-height: 1;
+
+  background: none;
+  border: none;
+  border-radius: var(--border-radius-controls);
+  cursor: pointer;
+  opacity: 0;
+
+  transition:
+    color var(--transition-basic),
+    opacity var(--transition-basic);
+}
+
+.itemWrapper:hover .remove,
+.itemWrapper:focus-within .remove {
+  opacity: 1;
+}
+
+.remove:hover,
+.remove:focus-visible {
+  color: var(--color-primary);
+}
+
+.remove:focus-visible {
+  outline: var(--focus-outline-style) var(--color-primary);
+}
+
+.itemWrapper:has(.remove:hover) .item,
+.itemWrapper:has(.remove:focus-visible) .item {
+  background-color: color-mix(in oklab, var(--color-danger) 12%, transparent);
+  background-color: var(--color-danger);
 }
 
 .item:hover:not(.selected) {

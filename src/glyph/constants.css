@@ -4,7 +4,7 @@
   --color-secondary: rgb(0 0 0 / 40%);
   --color-divider: color-mix(in oklab, var(--color-primary) 8%, transparent);
   --color-focus: hsl(48 98% 58%);
-  --color-danger: hsl(0 70% 46%);
+  --color-danger: hsl(0 75% 60%);
 
   /* Font sizes */
   --font-size-title: 32px;
