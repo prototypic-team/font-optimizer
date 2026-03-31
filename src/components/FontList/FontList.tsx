@@ -74,7 +74,7 @@ export const FontList: Component = () => {
         <button
           id="clear-all"
           class={cn(styles.item, styles.clearAll)}
-          onClick={clearFonts}
+          onClick={(e) => { e.stopPropagation(); clearFonts(); }}
         >
           <div>
             <span class={styles.name}>Clear all</span>
