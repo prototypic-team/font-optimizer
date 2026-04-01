@@ -4,7 +4,9 @@
   gap: 12px;
   padding: 8px;
 
-  background-color: color-mix(in oklab, var(--color-primary) 3%, transparent);
+  color: var(--color-primary);
+
+  background-color: var(--color-divider);
   border: none;
   border-radius: var(--border-radius-controls);
   cursor: pointer;
@@ -13,7 +15,18 @@
 }
 
 .cell:hover {
-  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
+  background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cell:hover,
+  .cell[data-focus-visible="true"] {
+    background-color: color-mix(
+      in oklab,
+      var(--color-primary) 25%,
+      transparent
+    );
+  }
 }
 
 .cell:focus-visible {
@@ -53,6 +66,7 @@
 .name {
   overflow: hidden;
 
+  color: var(--color-primary);
   white-space: nowrap;
   text-overflow: ellipsis;
 }

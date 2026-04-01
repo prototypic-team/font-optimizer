@@ -16,7 +16,7 @@ type ButtonProps = MergeWithPriority<
     /**
      * Visual style of the button
      */
-    kind?: "default" | "primary";
+    kind?: "default" | "primary" | "secondary";
   },
   Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "classList">
 >;

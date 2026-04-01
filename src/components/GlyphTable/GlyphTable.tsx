@@ -1,8 +1,16 @@
-import { Component, createMemo, createSignal, For, Show } from "solid-js";
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onCleanup,
+  Show,
+} from "solid-js";
 
 import { Button } from "~/glyph";
 import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
-import { exportSelectedFont } from "~/modules/state";
+import { exportAllFonts, exportSelectedFont, store } from "~/modules/state";
 import { formatFileSize } from "~/utils/format";
 
 import { GlyphGroup } from "./GlyphGroup";
@@ -12,6 +20,20 @@ import styles from "./GlyphTable.module.css";
 export const GlyphTable: Component = () => {
   const { base, parsed, isParsing } = useCurrentFont();
   const [exporting, setExporting] = createSignal(false);
+  const [exportingAll, setExportingAll] = createSignal(false);
+  const [hasContentBelow, setHasContentBelow] = createSignal(false);
+  let sentinelRef!: HTMLDivElement;
+
+  createEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => setHasContentBelow(!entry!.isIntersecting),
+      { rootMargin: "0px 0px -56px 0px", threshold: 0 }
+    );
+    if (sentinelRef.isConnected) {
+      observer.observe(sentinelRef);
+    }
+    onCleanup(() => observer.disconnect());
+  });
 
   const disabledGlyphsCount = createMemo(() => {
     if (!base() || !parsed()) return 0;
@@ -30,6 +52,9 @@ export const GlyphTable: Component = () => {
   });
 
   const canExport = createMemo(() => parsed() && glyphCount() > 0);
+  const canExportAll = createMemo(() =>
+    store.fontOrder.every((id) => store.parsedFonts[id])
+  );
 
   const handleExport = async () => {
     setExporting(true);
@@ -39,6 +64,17 @@ export const GlyphTable: Component = () => {
       alert(err instanceof Error ? err.message : "Export failed");
     } finally {
       setExporting(false);
+    }
+  };
+
+  const handleExportAll = async () => {
+    setExportingAll(true);
+    try {
+      await exportAllFonts();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Export failed");
+    } finally {
+      setExportingAll(false);
     }
   };
 
@@ -68,14 +104,6 @@ export const GlyphTable: Component = () => {
                     : formatFileSize(base()!.size)}
                 </span>
               </div>
-              <Button
-                kind="primary"
-                loading={exporting()}
-                disabled={!canExport()}
-                onClick={handleExport}
-              >
-                Export
-              </Button>
             </div>
           )}
         </header>
@@ -100,7 +128,29 @@ export const GlyphTable: Component = () => {
               }
             </For>
           </Show>
+          <div ref={sentinelRef} class={styles.sentinel} />
         </div>
+        <footer
+          class={styles.footer}
+          classList={{ [styles.bordered]: hasContentBelow() }}
+        >
+          <Button
+            kind="secondary"
+            loading={exporting()}
+            disabled={!canExport()}
+            onClick={handleExport}
+          >
+            Export {base()!.name}
+          </Button>
+          <Button
+            kind="primary"
+            loading={exportingAll()}
+            disabled={!canExportAll()}
+            onClick={handleExportAll}
+          >
+            Export All
+          </Button>
+        </footer>
       </div>
     </Show>
   );

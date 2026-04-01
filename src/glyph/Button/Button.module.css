@@ -12,6 +12,7 @@
   letter-spacing: 0.02em;
 
   border: 1px solid;
+  border-color: transparent;
   border-radius: var(--border-radius-controls);
   cursor: pointer;
 
@@ -55,8 +56,7 @@
 .default:hover:not(:disabled) {
   color: var(--color-primary);
 
-  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
-  border-color: transparent;
+  background-color: var(--color-divider);
 }
 
 .primary {
@@ -78,16 +78,37 @@
 
 .primary:hover:not(:disabled) {
   background-color: color-mix(in oklab, var(--color-primary) 90%, transparent);
-  border-color: color-mix(in oklab, var(--color-primary) 90%, transparent);
 }
 
 .primary:active {
   box-shadow: none;
 }
 
+.secondary {
+  color: var(--color-primary);
+
+  background-color: var(--color-divider);
+  border-color: transparent;
+}
+
+.secondary:disabled,
+.secondary.disabled {
+  color: color-mix(in oklab, var(--color-primary) 50%, transparent);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: color-mix(in oklab, var(--color-primary) 12%, transparent);
+  border-color: transparent;
+}
+
 @media (prefers-color-scheme: dark) {
-  .button.primary[data-focus-visible="true"] {
-    border-color: var(--color-base);
+  .secondary:hover:not(:disabled),
+  .secondary[data-focus-visible="true"]:not(:disabled) {
+    background-color: color-mix(
+      in oklab,
+      var(--color-primary) 25%,
+      transparent
+    );
   }
 }
 

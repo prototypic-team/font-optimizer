@@ -12,7 +12,7 @@
   height: 100vh;
   height: 100dvh;
   margin: 0;
-  padding: 24px 16px 16px;
+  padding: 24px 16px 12px;
   overflow-y: auto;
 }
 
@@ -77,7 +77,8 @@
 }
 
 .itemWrapper:hover .remove,
-.itemWrapper:focus-within .remove {
+.itemWrapper:has(.item:focus-visible) .remove,
+.itemWrapper:has(.selected) .remove {
   opacity: 1;
 }
 

@@ -1,6 +1,6 @@
 import { createStore, produce } from "solid-js/store";
 
-import { exportFont } from "~/modules/exporter/export";
+import { exportFont, exportFonts } from "~/modules/exporter/export";
 import { parseFontInWorker, prioritizeFont } from "~/modules/parser/parse";
 import {
   clearPersistedApp,
@@ -326,6 +326,33 @@ const exportSelectedFont = async (): Promise<void> => {
   await exportFont(buffer, codePoints, font.name);
 };
 
+const exportAllFonts = async (): Promise<void> => {
+  const parsedFontIds = store.fontOrder.filter((id) => store.parsedFonts[id]);
+
+  if (parsedFontIds.length === 0) {
+    throw new Error("No fonts ready for export");
+  }
+
+  const fontData = await Promise.all(
+    parsedFontIds.map(async (id) => {
+      const font = store.fonts[id]!;
+      const parsed = store.parsedFonts[id]!;
+      const codePoints: number[] = [];
+      for (const group of parsed.groups) {
+        for (const glyph of group.glyphs) {
+          const key = glyph.codePoints.join(",");
+          if (!font.disabledCodePoints[key]) {
+            codePoints.push(...glyph.codePoints);
+          }
+        }
+      }
+      return { buffer: await font.file.arrayBuffer(), codePoints, name: font.name };
+    })
+  );
+
+  await exportFonts(fontData);
+};
+
 const writePersistedSnapshot = async (): Promise<void> => {
   if (store.fontOrder.length === 0) {
     await clearPersistedApp();
@@ -511,6 +538,7 @@ const hydrateParsedFontsForGroup = async (ids: string[]): Promise<void> => {
 export {
   addFonts,
   clearFonts,
+  exportAllFonts,
   exportSelectedFont,
   removeFont,
   selectFont,

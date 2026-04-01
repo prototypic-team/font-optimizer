@@ -74,10 +74,13 @@ export const FontList: Component = () => {
         <button
           id="clear-all"
           class={cn(styles.item, styles.clearAll)}
-          onClick={(e) => { e.stopPropagation(); clearFonts(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            clearFonts();
+          }}
         >
           <div>
-            <span class={styles.name}>Clear all</span>
+            <span class={styles.name}>Clear All</span>
             <span class={styles.size}>{modKey} + Del</span>
           </div>
         </button>

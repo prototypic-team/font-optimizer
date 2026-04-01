@@ -50,20 +50,14 @@ const downloadBlob = async (blob: Blob, fileName: string): Promise<void> => {
   }, 0);
 };
 
-export const exportFont = (
+const processFont = (
   fontBuffer: ArrayBuffer,
-  codePoints: number[],
-  fontName: string
-): Promise<void> =>
+  codePoints: number[]
+): Promise<{ woff: Uint8Array; woff2: Uint8Array }> =>
   new Promise((resolve, reject) => {
-    if (codePoints.length === 0) {
-      reject(new Error("No glyphs selected for export"));
-      return;
-    }
-
     const w = getWorker();
 
-    const onMessage = async (
+    const onMessage = (
       e: MessageEvent<{
         woff?: Uint8Array;
         woff2?: Uint8Array;
@@ -80,22 +74,57 @@ export const exportFont = (
         reject(new Error("Export failed: missing WOFF or WOFF2 data"));
         return;
       }
-
-      const safeName =
-        fontName.replace(/[^a-zA-Z0-9\s-]/g, "").trim() || "font";
-
-      const zipBytes = zipSync({
-        [`${safeName}.woff`]: woff,
-        [`${safeName}.woff2`]: woff2,
-      });
-      const zipBlob = new Blob([new Uint8Array(zipBytes)], {
-        type: "application/zip",
-      });
-
-      await downloadBlob(zipBlob, `${safeName}.zip`);
-      resolve();
+      resolve({ woff, woff2 });
     };
 
     w.addEventListener("message", onMessage);
     w.postMessage({ fontBuffer, codePoints }, [fontBuffer]);
   });
+
+export const exportFont = async (
+  fontBuffer: ArrayBuffer,
+  codePoints: number[],
+  fontName: string
+): Promise<void> => {
+  if (codePoints.length === 0) {
+    throw new Error("No glyphs selected for export");
+  }
+
+  const { woff, woff2 } = await processFont(fontBuffer, codePoints);
+  const safeName = fontName.replace(/[^a-zA-Z0-9\s-]/g, "").trim() || "font";
+
+  const zipBytes = zipSync({
+    [`${safeName}.woff`]: woff,
+    [`${safeName}.woff2`]: woff2,
+  });
+  const zipBlob = new Blob([new Uint8Array(zipBytes)], {
+    type: "application/zip",
+  });
+
+  await downloadBlob(zipBlob, `${safeName}.zip`);
+};
+
+export const exportFonts = async (
+  fonts: { buffer: ArrayBuffer; codePoints: number[]; name: string }[]
+): Promise<void> => {
+  const zipEntries: Record<string, Uint8Array> = {};
+
+  for (const { buffer, codePoints, name } of fonts) {
+    if (codePoints.length === 0) continue;
+    const { woff, woff2 } = await processFont(buffer, codePoints);
+    const safeName = name.replace(/[^a-zA-Z0-9\s-]/g, "").trim() || "font";
+    zipEntries[`${safeName}.woff`] = woff;
+    zipEntries[`${safeName}.woff2`] = woff2;
+  }
+
+  if (Object.keys(zipEntries).length === 0) {
+    throw new Error("No glyphs selected for export");
+  }
+
+  const zipBytes = zipSync(zipEntries);
+  const zipBlob = new Blob([new Uint8Array(zipBytes)], {
+    type: "application/zip",
+  });
+
+  await downloadBlob(zipBlob, "fonts.zip");
+};
