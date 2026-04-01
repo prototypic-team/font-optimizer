@@ -39,6 +39,10 @@
   font-size: var(--font-size-small);
 }
 
+.fontFileSize > span {
+  vertical-align: 1px;
+}
+
 .groups {
   display: flex;
   flex-direction: column;

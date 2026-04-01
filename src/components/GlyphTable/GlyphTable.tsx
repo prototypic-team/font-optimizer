@@ -99,9 +99,13 @@ export const GlyphTable: Component = () => {
                   : glyphCount()}{" "}
                 glyphs
                 <span class={styles.fontFileSize}>
-                  {disabledGlyphsCount()
-                    ? `${formatFileSize(base()!.size)} → ${formatFileSize(estimatedSize())}`
-                    : formatFileSize(base()!.size)}
+                  {formatFileSize(base()!.size)}
+                  {disabledGlyphsCount() ? (
+                    <>
+                      <span> → </span>
+                      {formatFileSize(estimatedSize())}
+                    </>
+                  ) : null}
                 </span>
               </div>
             </div>

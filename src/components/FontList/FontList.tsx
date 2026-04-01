@@ -1,6 +1,7 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
 import { cn } from "~/glyph";
+import { estimateSize } from "~/modules/fonts/utils";
 import {
   addFonts,
   clearFonts,
@@ -15,7 +16,62 @@ import { useFilePicker } from "~/utils/useFilePicker";
 
 import styles from "./FontList.module.css";
 
+import { TFont } from "Types";
+
 const modKey = isMac ? "⌘" : "Ctrl";
+
+const FontItem: Component<{ font: TFont }> = (props) => {
+  const parsed = createMemo(() => store.parsedFonts[props.font.id]);
+  const disabledCount = createMemo(
+    () =>
+      Object.values(props.font.disabledCodePoints).filter((v) => v === true)
+        .length
+  );
+  const estimatedBytes = createMemo(() => {
+    const p = parsed();
+    if (!p || disabledCount() === 0) return null;
+    const glyphCount = p.totalGlyphs - disabledCount();
+    return estimateSize(glyphCount, p.totalGlyphs, props.font.size).bytes;
+  });
+
+  return (
+    <div class={styles.itemWrapper}>
+      <button
+        class={styles.item}
+        classList={{
+          [styles.selected]: store.selectedFontId === props.font.id,
+          [styles.parsed]: !!parsed(),
+          pulse: store.parsingFonts[props.font.id],
+        }}
+        aria-label={`Select ${props.font.name}`}
+        onClick={() => selectFont(props.font.id)}
+      >
+        <span
+          class={styles.name}
+          style={{ "font-family": `"${props.font.id}", sans-serif` }}
+        >
+          {props.font.name}
+        </span>
+        <span class={styles.size}>
+          {formatFileSize(props.font.size)}
+          {estimatedBytes() !== null ? (
+            <>
+              <span> → </span>
+              {formatFileSize(estimatedBytes()!)}
+            </>
+          ) : null}
+        </span>
+      </button>
+      <button
+        class={styles.remove}
+        aria-label={`Remove ${props.font.name}`}
+        onClick={() => removeFont(props.font.id)}
+      >
+        ×
+      </button>
+    </div>
+  );
+};
 
 export const FontList: Component = () => {
   const fonts = createMemo(() =>
@@ -27,41 +83,7 @@ export const FontList: Component = () => {
   return (
     <Show when={fonts().length > 0}>
       <nav class={styles.list}>
-        <For each={fonts()}>
-          {(font) => (
-            <div class={styles.itemWrapper}>
-              <button
-                class={styles.item}
-                classList={{
-                  [styles.selected]: store.selectedFontId === font.id,
-                  [styles.parsed]: !!store.parsedFonts[font.id],
-                  pulse: store.parsingFonts[font.id],
-                }}
-                aria-label={`Select ${font.name}`}
-                onClick={() => selectFont(font.id)}
-              >
-                <span
-                  class={styles.name}
-                  style={{ "font-family": `"${font.id}", sans-serif` }}
-                >
-                  {font.name}
-                </span>
-                <span class={styles.size}>
-                  {[font.extension, formatFileSize(font.size)]
-                    .filter(Boolean)
-                    .join("・")}
-                </span>
-              </button>
-              <button
-                class={styles.remove}
-                aria-label={`Remove ${font.name}`}
-                onClick={() => removeFont(font.id)}
-              >
-                ×
-              </button>
-            </div>
-          )}
-        </For>
+        <For each={fonts()}>{(font) => <FontItem font={font} />}</For>
         <button
           class={cn(styles.item, styles.addFonts)}
           onClick={openFilePicker}
