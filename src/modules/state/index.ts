@@ -303,6 +303,22 @@ const toggleGroupCollapsed = (fontId: string, groupId: string) => {
   schedulePersistSnapshot();
 };
 
+const copySelectionToAllFonts = (sourceFontId: string) => {
+  const sourceFont = store.fonts[sourceFontId];
+  if (!sourceFont) return;
+
+  setStore(
+    produce((prev) => {
+      for (const id of prev.fontOrder) {
+        if (id === sourceFontId) continue;
+        if (!prev.fonts[id]) continue;
+        prev.fonts[id].disabledCodePoints = { ...sourceFont.disabledCodePoints };
+      }
+    })
+  );
+  schedulePersistSnapshot();
+};
+
 const exportSelectedFont = async (): Promise<void> => {
   const fontId = store.selectedFontId;
   const font = fontId ? store.fonts[fontId] : undefined;
@@ -538,6 +554,7 @@ const hydrateParsedFontsForGroup = async (ids: string[]): Promise<void> => {
 export {
   addFonts,
   clearFonts,
+  copySelectionToAllFonts,
   exportAllFonts,
   exportSelectedFont,
   removeFont,

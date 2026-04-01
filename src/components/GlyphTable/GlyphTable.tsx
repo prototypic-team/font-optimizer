@@ -10,7 +10,12 @@ import {
 
 import { Button } from "~/glyph";
 import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
-import { exportAllFonts, exportSelectedFont, store } from "~/modules/state";
+import {
+  copySelectionToAllFonts,
+  exportAllFonts,
+  exportSelectedFont,
+  store,
+} from "~/modules/state";
 import { formatFileSize } from "~/utils/format";
 
 import { GlyphGroup } from "./GlyphGroup";
@@ -55,6 +60,31 @@ export const GlyphTable: Component = () => {
   const canExportAll = createMemo(() =>
     store.fontOrder.every((id) => store.parsedFonts[id])
   );
+
+  const hasMultipleFonts = createMemo(() => store.fontOrder.length > 1);
+
+  const canCopySelection = createMemo(() => {
+    const currentFont = base();
+    if (!currentFont) return false;
+
+    const otherIds = store.fontOrder.filter((id) => id !== currentFont.id);
+    if (otherIds.length === 0) return false;
+
+    const current = currentFont.disabledCodePoints;
+
+    return otherIds.some((id) => {
+      const other = store.fonts[id]?.disabledCodePoints;
+      if (!other) return false;
+
+      for (const [key, val] of Object.entries(current)) {
+        if ((val === true) !== (other[key] === true)) return true;
+      }
+      for (const [key, val] of Object.entries(other)) {
+        if ((val === true) !== (current[key] === true)) return true;
+      }
+      return false;
+    });
+  });
 
   const handleExport = async () => {
     setExporting(true);
@@ -138,22 +168,33 @@ export const GlyphTable: Component = () => {
           class={styles.footer}
           classList={{ [styles.bordered]: hasContentBelow() }}
         >
-          <Button
-            kind="secondary"
-            loading={exporting()}
-            disabled={!canExport()}
-            onClick={handleExport}
-          >
-            Export {base()!.name}
-          </Button>
-          <Button
-            kind="primary"
-            loading={exportingAll()}
-            disabled={!canExportAll()}
-            onClick={handleExportAll}
-          >
-            Export All
-          </Button>
+          <Show when={hasMultipleFonts()}>
+            <Button
+              kind="secondary"
+              disabled={!canCopySelection()}
+              onClick={() => copySelectionToAllFonts(base()!.id)}
+            >
+              Apply Selection to All Fonts
+            </Button>
+          </Show>
+          <div class={styles.footerActions}>
+            <Button
+              kind="secondary"
+              loading={exporting()}
+              disabled={!canExport()}
+              onClick={handleExport}
+            >
+              Export {base()!.name}
+            </Button>
+            <Button
+              kind="primary"
+              loading={exportingAll()}
+              disabled={!canExportAll()}
+              onClick={handleExportAll}
+            >
+              Export All
+            </Button>
+          </div>
         </footer>
       </div>
     </Show>

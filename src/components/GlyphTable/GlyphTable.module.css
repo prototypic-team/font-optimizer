@@ -83,6 +83,13 @@
   transition: border-color var(--transition-basic);
 }
 
+.footerActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-left: auto;
+}
+
 .bordered {
   border-top-color: var(--color-divider);
 }
