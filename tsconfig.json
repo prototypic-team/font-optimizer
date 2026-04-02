@@ -6,8 +6,6 @@
     "target": "ESNext",
 
     // Modules
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
@@ -19,6 +17,6 @@
     // Type Checking & Safety
     "strict": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "@types/bun"]
+    "types": ["vite/client", "bun"]
   }
 }
