@@ -1,6 +1,10 @@
 import { createStore, produce } from "solid-js/store";
 
-import { exportFont, exportFonts } from "~/modules/exporter/export";
+import {
+  exportFont,
+  exportFonts,
+  measureFontSize,
+} from "~/modules/exporter/export";
 import { parseFontInWorker, prioritizeFont } from "~/modules/parser/parse";
 import {
   clearPersistedApp,
@@ -8,6 +12,7 @@ import {
   loadPersistedMeta,
   PERSISTENCE_VERSION,
   savePersistedApp,
+  savePersistedMeta,
   type TPersistedAppMeta,
   type TPersistedFontMeta,
 } from "~/modules/persistence/persistence";
@@ -64,11 +69,14 @@ const createFontFromFile = (file: File): TFont => ({
   id: crypto.randomUUID(),
   name: normalizeName(file.name),
   fileName: file.name,
-  size: file.size,
   extension: extensionFromFile(file.name, file.type),
   file,
   disabledCodePoints: {},
   collapsedGroups: {},
+  weight: {
+    original: file.size,
+    estimated: undefined,
+  },
 });
 
 const [store, setStore] = createStore<TFontsState>({
@@ -156,7 +164,7 @@ const clearFonts = () => {
 
 const selectFont = (fontId: string) => {
   setStore("selectedFontId", fontId);
-  schedulePersistSnapshot();
+  persistFontMeta();
   const font = store.fonts[fontId];
   if (font && !store.parsedFonts[fontId]) {
     if (store.parsingFonts[fontId]) {
@@ -174,11 +182,15 @@ const createFontForCollectionEntry = (
   id: crypto.randomUUID(),
   name: parsed.info.fullName,
   fileName: source.fileName,
-  size: source.size,
   extension: source.extension,
   file: source.file,
   disabledCodePoints: {},
   collapsedGroups: {},
+  weight: {
+    original: source.weight.original,
+    estimated: undefined,
+    estimating: false,
+  },
 });
 
 const registerFontFace = (font: TFont) => {
@@ -200,7 +212,8 @@ const loadParsedFont = async (font: TFont) => {
     // Font was removed while the worker was parsing — discard results.
     if (!store.fonts[font.id]) return;
 
-    let [first, ...rest] = parsedFonts;
+    const first = parsedFonts[0];
+    let rest = parsedFonts.slice(1);
 
     // Build a set of full names already in the store (excluding this font's
     // own placeholder so it doesn't match itself).
@@ -230,32 +243,32 @@ const loadParsedFont = async (font: TFont) => {
     setStore("fonts", font.id, "name", first.info.fullName);
     setStore("parsedFonts", font.id, first);
     existingNames.add(first.info.fullName);
+    scheduleMeasurement(font.id);
 
     // For font collections (TTC/OTC), create new font entries for additional fonts,
     // skipping any faces whose full name is already present in the store.
-    rest = rest.filter(
-      (parsed) => !existingNames.has(parsed.info.fullName)
-    );
+    rest = rest.filter((parsed) => !existingNames.has(parsed.info.fullName));
     if (rest.length > 0) {
       const extraFonts = rest.map((parsed) =>
-          createFontForCollectionEntry(parsed, font)
-        );
+        createFontForCollectionEntry(parsed, font)
+      );
 
-        setStore(
-          produce((prev) => {
-            const parentIndex = prev.fontOrder.indexOf(font.id);
-            const insertAt =
-              parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
-            for (let i = 0; i < extraFonts.length; i++) {
-              prev.fonts[extraFonts[i].id] = extraFonts[i];
-              prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
-            }
-          })
-        );
+      setStore(
+        produce((prev) => {
+          const parentIndex = prev.fontOrder.indexOf(font.id);
+          const insertAt =
+            parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
+          for (let i = 0; i < extraFonts.length; i++) {
+            prev.fonts[extraFonts[i].id] = extraFonts[i];
+            prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
+          }
+        })
+      );
 
       for (let i = 0; i < extraFonts.length; i++) {
         setStore("parsedFonts", extraFonts[i].id, rest[i]);
         registerFontFace(extraFonts[i]);
+        scheduleMeasurement(extraFonts[i].id);
       }
       schedulePersistSnapshot();
     }
@@ -269,8 +282,21 @@ const loadParsedFont = async (font: TFont) => {
 };
 
 const toggleGlyph = (fontId: string, codePoints: string) => {
-  setStore("fonts", fontId, "disabledCodePoints", codePoints, (prev) => !prev);
-  schedulePersistSnapshot();
+  setStore(
+    produce((prev) => {
+      const font = prev.fonts[fontId];
+      if (!font) return prev;
+
+      const parsed = prev.parsedFonts[fontId];
+      if (!parsed) return prev;
+
+      font.disabledCodePoints[codePoints] =
+        !font.disabledCodePoints[codePoints];
+      font.weight.estimating = true;
+    })
+  );
+  persistFontMeta();
+  scheduleMeasurement(fontId);
 };
 
 const toggleGroup = (fontId: string, groupId: string) => {
@@ -292,15 +318,18 @@ const toggleGroup = (fontId: string, groupId: string) => {
       group.glyphs.forEach((glyph) => {
         font.disabledCodePoints[glyph.codePoints.join(",")] = !allDisabled;
       });
+
+      font.weight.estimating = true;
     })
   );
-  schedulePersistSnapshot();
+  persistFontMeta();
+  scheduleMeasurement(fontId);
 };
 
 const toggleGroupCollapsed = (fontId: string, groupId: string) => {
   // Match GlyphGroup: missing key means collapsed (same as `?? true` in UI).
   setStore("fonts", fontId, "collapsedGroups", groupId, (prev = true) => !prev);
-  schedulePersistSnapshot();
+  persistFontMeta();
 };
 
 const copySelectionToAllFonts = (sourceFontId: string) => {
@@ -312,11 +341,15 @@ const copySelectionToAllFonts = (sourceFontId: string) => {
       for (const id of prev.fontOrder) {
         if (id === sourceFontId) continue;
         if (!prev.fonts[id]) continue;
-        prev.fonts[id].disabledCodePoints = { ...sourceFont.disabledCodePoints };
+        prev.fonts[id].disabledCodePoints = {
+          ...sourceFont.disabledCodePoints,
+        };
+        prev.fonts[id].weight.estimating = true;
+        scheduleMeasurement(id);
       }
     })
   );
-  schedulePersistSnapshot();
+  persistFontMeta();
 };
 
 const exportSelectedFont = async (): Promise<void> => {
@@ -362,11 +395,56 @@ const exportAllFonts = async (): Promise<void> => {
           }
         }
       }
-      return { buffer: await font.file.arrayBuffer(), codePoints, name: font.name };
+      return {
+        buffer: await font.file.arrayBuffer(),
+        codePoints,
+        name: font.name,
+      };
     })
   );
 
   await exportFonts(fontData);
+};
+
+const buildAppMeta = (): TPersistedAppMeta | null => {
+  if (store.fontOrder.length === 0) return null;
+
+  const fontsMeta: TPersistedAppMeta["fonts"] = {};
+  for (const id of store.fontOrder) {
+    const f = store.fonts[id];
+    if (!f) continue;
+    fontsMeta[id] = {
+      id: f.id,
+      name: f.name,
+      fileName: f.fileName,
+      extension: f.extension,
+      disabledCodePoints: { ...f.disabledCodePoints },
+      collapsedGroups: { ...f.collapsedGroups },
+      weight: {
+        original: f.weight.original,
+        estimated: f.weight.estimated,
+        estimating: f.weight.estimating,
+      },
+    };
+  }
+
+  const selectedFontId =
+    store.selectedFontId && fontsMeta[store.selectedFontId]
+      ? store.selectedFontId
+      : (store.fontOrder[0] ?? null);
+
+  return {
+    version: PERSISTENCE_VERSION,
+    fontOrder: [...store.fontOrder],
+    selectedFontId,
+    fonts: fontsMeta,
+  };
+};
+
+const persistFontMeta = async (): Promise<void> => {
+  const meta = buildAppMeta();
+  if (!meta) return;
+  await savePersistedMeta(meta);
 };
 
 const writePersistedSnapshot = async (): Promise<void> => {
@@ -375,38 +453,16 @@ const writePersistedSnapshot = async (): Promise<void> => {
     return;
   }
 
-  const fontsMeta: TPersistedAppMeta["fonts"] = {};
-  const files: Record<string, File> = {};
+  const meta = buildAppMeta();
+  if (!meta) return;
 
+  const files: Record<string, File> = {};
   for (const id of store.fontOrder) {
     const f = store.fonts[id];
-    if (!f) continue;
-    fontsMeta[id] = {
-      id: f.id,
-      name: f.name,
-      fileName: f.fileName,
-      size: f.size,
-      extension: f.extension,
-      disabledCodePoints: { ...f.disabledCodePoints },
-      collapsedGroups: { ...f.collapsedGroups },
-    };
-    files[id] = f.file;
+    if (f) files[id] = f.file;
   }
 
-  const selectedFontId =
-    store.selectedFontId && fontsMeta[store.selectedFontId]
-      ? store.selectedFontId
-      : (store.fontOrder[0] ?? null);
-
-  await savePersistedApp({
-    meta: {
-      version: PERSISTENCE_VERSION,
-      fontOrder: [...store.fontOrder],
-      selectedFontId,
-      fonts: fontsMeta,
-    },
-    files,
-  });
+  await savePersistedApp({ meta, files });
 };
 
 let persistTimer: ReturnType<typeof setTimeout> | undefined;
@@ -420,15 +476,76 @@ const schedulePersistSnapshot = (): void => {
   }, 400);
 };
 
+// --- Background exact-size measurement ---
+// After each selection change we debounce a real HarfBuzz subset to replace
+// the formula estimate with the true WOFF2 byte count.
+
+const measureTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+const measureGeneration: Record<string, number> = {};
+
+const measureFontBackground = async (fontId: string): Promise<void> => {
+  const gen = (measureGeneration[fontId] ?? 0) + 1;
+  measureGeneration[fontId] = gen;
+
+  setStore("fonts", fontId, "weight", "estimating", true);
+  try {
+    const font = store.fonts[fontId];
+    const parsed = store.parsedFonts[fontId];
+    if (!font || !parsed) return;
+
+    const codePoints: number[] = [];
+    for (const group of parsed.groups) {
+      for (const glyph of group.glyphs) {
+        if (!font.disabledCodePoints[glyph.codePoints.join(",")]) {
+          codePoints.push(...glyph.codePoints);
+        }
+      }
+    }
+
+    const buffer = await font.file.arrayBuffer();
+    if (measureGeneration[fontId] !== gen) return;
+
+    const measuredSize = await measureFontSize(buffer, codePoints);
+    if (measureGeneration[fontId] !== gen || !store.fonts[fontId]) return;
+
+    setStore(
+      "fonts",
+      fontId,
+      produce((f) => {
+        f.weight.estimated = measuredSize;
+        f.weight.estimating = false;
+      })
+    );
+    schedulePersistSnapshot();
+  } catch (err) {
+    console.error("Font measurement failed:", err);
+    if (measureGeneration[fontId] === gen) {
+      setStore("fonts", fontId, "weight", "estimating", false);
+    }
+  }
+};
+
+const scheduleMeasurement = (fontId: string, delay = 800): void => {
+  if (measureTimers[fontId] !== undefined) clearTimeout(measureTimers[fontId]);
+  measureTimers[fontId] = setTimeout(() => {
+    delete measureTimers[fontId];
+    measureFontBackground(fontId);
+  }, delay);
+};
+
 const makeTFont = (f: TPersistedFontMeta, buf: ArrayBuffer): TFont => ({
   id: f.id,
   name: f.name,
   fileName: f.fileName,
-  size: f.size,
   extension: f.extension,
   file: new File([buf], f.fileName, { type: mimeFromExtension(f.extension) }),
   disabledCodePoints: { ...f.disabledCodePoints },
   collapsedGroups: { ...f.collapsedGroups },
+  weight: {
+    original: f.weight.original,
+    estimated: f.weight.estimated,
+    estimating: f.weight.estimating,
+  },
 });
 
 /**
@@ -455,7 +572,7 @@ export const hydrateFromPersistence = async (
   for (const id of meta.fontOrder) {
     const f = meta.fonts[id];
     if (!f) continue;
-    const key = `${f.fileName}\0${f.size}`;
+    const key = `${f.fileName}\0${f.weight.original}`;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key)!.push(id);
   }
@@ -463,7 +580,7 @@ export const hydrateFromPersistence = async (
   // Identify which group contains the selected font so we load it first.
   const selectedMeta = selectedId ? meta.fonts[selectedId] : null;
   const primaryKey = selectedMeta
-    ? `${selectedMeta.fileName}\0${selectedMeta.size}`
+    ? `${selectedMeta.fileName}\0${selectedMeta.weight.original}`
     : null;
   const primaryIds = primaryKey ? (groups.get(primaryKey) ?? []) : [];
 
@@ -489,7 +606,7 @@ export const hydrateFromPersistence = async (
     parsingFonts: {},
   });
 
-  if (primaryLoaded.length > 0) void hydrateParsedFontsForGroup(primaryLoaded);
+  if (primaryLoaded.length > 0) hydrateParsedFontsForGroup(primaryLoaded);
 
   // UI can render now — selected font is in the store and being parsed.
   onReady();
@@ -510,7 +627,7 @@ export const hydrateFromPersistence = async (
       setStore("fonts", id, font);
       groupLoaded.push(id);
     }
-    if (groupLoaded.length > 0) void hydrateParsedFontsForGroup(groupLoaded);
+    if (groupLoaded.length > 0) hydrateParsedFontsForGroup(groupLoaded);
   }
 
   // Restore the original font order (phase-1 put the selected group first),
@@ -538,6 +655,10 @@ const hydrateParsedFontsForGroup = async (ids: string[]): Promise<void> => {
     for (let i = 0; i < n; i++) {
       setStore("fonts", ids[i], "name", parsedList[i].info.fullName);
       setStore("parsedFonts", ids[i], parsedList[i]);
+      const f = store.fonts[ids[i]];
+      if (!f.weight.estimated || f.weight.estimating) {
+        scheduleMeasurement(ids[i], 0);
+      }
     }
     if (parsedList.length !== ids.length) {
       console.warn(
@@ -557,6 +678,7 @@ export {
   copySelectionToAllFonts,
   exportAllFonts,
   exportSelectedFont,
+  persistFontMeta,
   removeFont,
   selectFont,
   store,

@@ -53,17 +53,20 @@ const downloadBlob = async (blob: Blob, fileName: string): Promise<void> => {
 const processFont = (
   fontBuffer: ArrayBuffer,
   codePoints: number[]
-): Promise<{ woff: Uint8Array; woff2: Uint8Array }> =>
-  new Promise((resolve, reject) => {
+): Promise<{ woff: Uint8Array; woff2: Uint8Array }> => {
+  const id = crypto.randomUUID();
+  return new Promise((resolve, reject) => {
     const w = getWorker();
 
     const onMessage = (
       e: MessageEvent<{
+        id: string;
         woff?: Uint8Array;
         woff2?: Uint8Array;
         error?: string;
       }>
     ) => {
+      if (e.data.id !== id) return;
       w.removeEventListener("message", onMessage);
       const { woff, woff2, error } = e.data;
       if (error) {
@@ -78,8 +81,17 @@ const processFont = (
     };
 
     w.addEventListener("message", onMessage);
-    w.postMessage({ fontBuffer, codePoints }, [fontBuffer]);
+    w.postMessage({ id, fontBuffer, codePoints }, [fontBuffer]);
   });
+};
+
+export const measureFontSize = async (
+  fontBuffer: ArrayBuffer,
+  codePoints: number[]
+): Promise<number> => {
+  const { woff2 } = await processFont(fontBuffer.slice(0), codePoints);
+  return woff2.byteLength;
+};
 
 export const exportFont = async (
   fontBuffer: ArrayBuffer,

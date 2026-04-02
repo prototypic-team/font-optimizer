@@ -1,6 +1,6 @@
 import { Component, createEffect, createMemo, For, Show } from "solid-js";
 
-import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
+import { useCurrentFont } from "~/modules/fonts";
 import { toggleGroup, toggleGroupCollapsed } from "~/modules/state";
 
 import { GlyphCell } from "./GlyphCell";
@@ -13,11 +13,6 @@ const formatPercent = (count: number, total: number): string => {
   const percent = (count / total) * 100;
   if (percent < 1) return "<1%";
   return `~${Math.round(percent)}%`;
-};
-
-const formatEstimatedSize = (kb: number): string => {
-  if (kb < 1) return "1 KB";
-  return `${Math.round(kb)} KB`;
 };
 
 type GlyphGroupProps = {
@@ -39,12 +34,6 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
 
   const weightPercent = createMemo(() =>
     formatPercent(glyphCount(), parsed()?.totalGlyphs || 0)
-  );
-  const estimatedSize = createMemo(() =>
-    formatEstimatedSize(
-      estimateSize(glyphCount(), parsed()?.totalGlyphs || 0, base()?.size || 0)
-        .kb
-    )
   );
 
   let checkboxRef: HTMLInputElement | undefined;
@@ -137,9 +126,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
               ? `${glyphCount()} / ${props.group.glyphs.length}`
               : glyphCount()}{" "}
             glyphs
-            <div class={styles.weight}>
-              {weightPercent()} ({estimatedSize()})
-            </div>
+            <div class={styles.weight}>{weightPercent()}</div>
           </div>
         )}
       </header>

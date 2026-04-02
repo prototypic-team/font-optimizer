@@ -290,18 +290,17 @@ const encodeWoff = (sfnt: Uint8Array): Uint8Array => {
 };
 
 self.onmessage = async (
-  e: MessageEvent<{ fontBuffer: ArrayBuffer; codePoints: number[] }>
+  e: MessageEvent<{ id: string; fontBuffer: ArrayBuffer; codePoints: number[] }>
 ) => {
+  const { id, fontBuffer, codePoints } = e.data;
   try {
-    const sfnt = await subset(e.data.fontBuffer, e.data.codePoints);
+    const sfnt = await subset(fontBuffer, codePoints);
     const woff = encodeWoff(sfnt);
     const woff2 = await compress(sfnt);
-    (self as unknown as Worker).postMessage({
-      woff,
-      woff2,
-    });
+    (self as unknown as Worker).postMessage({ id, woff, woff2 });
   } catch (err) {
     (self as unknown as Worker).postMessage({
+      id,
       error: err instanceof Error ? err.message : String(err),
     });
   }

@@ -23,7 +23,8 @@
 }
 
 .item {
-  display: inline-grid;
+  display: grid;
+  gap: 2px;
   padding: 6px 12px;
 
   color: var(--color-primary);
@@ -117,12 +118,21 @@
 }
 
 .size {
-  /* color: color-mix(in oklab, currentcolor 40%, transparent); */
   font-size: var(--font-size-small);
 }
 
-.size > span {
-  vertical-align: 1px;
+.arrow {
+  position: relative;
+
+  display: inline-block;
+
+  transform: translateY(-1px);
+
+  padding-inline: 4px;
+}
+
+.estimating {
+  color: var(--color-secondary);
 }
 
 .parsed {

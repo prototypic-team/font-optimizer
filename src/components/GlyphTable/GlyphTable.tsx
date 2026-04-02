@@ -9,7 +9,7 @@ import {
 } from "solid-js";
 
 import { Button } from "~/glyph";
-import { estimateSize, useCurrentFont } from "~/modules/fonts/utils";
+import { useCurrentFont } from "~/modules/fonts";
 import {
   copySelectionToAllFonts,
   exportAllFonts,
@@ -46,14 +46,15 @@ export const GlyphTable: Component = () => {
     return Object.values(base()!.disabledCodePoints).filter((v) => v === true)
       .length;
   });
-  const glyphCount = createMemo(() =>
-    parsed() ? parsed()!.totalGlyphs - disabledGlyphsCount() : 0
-  );
-  const estimatedSize = createMemo(() => {
-    if (!parsed() || !base()) return 0;
-
-    return estimateSize(glyphCount(), parsed()!.totalGlyphs, base()!.size)
-      .bytes;
+  const glyphCount = createMemo(() => {
+    if (!parsed()) return 0;
+    let count = 0;
+    for (const group of parsed()!.groups) {
+      for (const glyph of group.glyphs) {
+        if (!base()?.disabledCodePoints[glyph.codePoints.join(",")]) count++;
+      }
+    }
+    return count;
   });
 
   const canExport = createMemo(() => parsed() && glyphCount() > 0);
@@ -129,13 +130,13 @@ export const GlyphTable: Component = () => {
                   : glyphCount()}{" "}
                 glyphs
                 <span class={styles.fontFileSize}>
-                  {formatFileSize(base()!.size)}
-                  {disabledGlyphsCount() ? (
+                  {formatFileSize(base()!.weight.original)}
+                  {base()!.weight.estimated !== undefined && (
                     <>
                       <span> → </span>
-                      {formatFileSize(estimatedSize())}
+                      {formatFileSize(base()!.weight.estimated!)}
                     </>
-                  ) : null}
+                  )}
                 </span>
               </div>
             </div>

@@ -1,7 +1,6 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
 import { cn } from "~/glyph";
-import { estimateSize } from "~/modules/fonts/utils";
 import {
   addFonts,
   clearFonts,
@@ -22,17 +21,6 @@ const modKey = isMac ? "⌘" : "Ctrl";
 
 const FontItem: Component<{ font: TFont }> = (props) => {
   const parsed = createMemo(() => store.parsedFonts[props.font.id]);
-  const disabledCount = createMemo(
-    () =>
-      Object.values(props.font.disabledCodePoints).filter((v) => v === true)
-        .length
-  );
-  const estimatedBytes = createMemo(() => {
-    const p = parsed();
-    if (!p || disabledCount() === 0) return null;
-    const glyphCount = p.totalGlyphs - disabledCount();
-    return estimateSize(glyphCount, p.totalGlyphs, props.font.size).bytes;
-  });
 
   return (
     <div class={styles.itemWrapper}>
@@ -53,13 +41,19 @@ const FontItem: Component<{ font: TFont }> = (props) => {
           {props.font.name}
         </span>
         <span class={styles.size}>
-          {formatFileSize(props.font.size)}
-          {estimatedBytes() !== null ? (
+          {formatFileSize(props.font.weight.original)}
+          {props.font.weight.estimated !== undefined && (
             <>
-              <span> → </span>
-              {formatFileSize(estimatedBytes()!)}
+              <span class={styles.arrow}> → </span>
+              <span
+                classList={{
+                  [styles.estimating]: props.font.weight.estimating,
+                }}
+              >
+                {formatFileSize(props.font.weight.estimated!)}
+              </span>
             </>
-          ) : null}
+          )}
         </span>
       </button>
       <button
@@ -89,7 +83,7 @@ export const FontList: Component = () => {
           onClick={openFilePicker}
         >
           <div>
-            <span class={styles.name}>Upload Fonts</span>
+            <span class={styles.name}>Add Fonts</span>
             <span class={styles.size}>{modKey} + U</span>
           </div>
         </button>

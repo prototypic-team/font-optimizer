@@ -3,11 +3,15 @@ declare module "Types" {
     id: string;
     name: string;
     fileName: string;
-    size: number;
     extension: string;
     file: File;
     disabledCodePoints: Record<string, boolean>;
     collapsedGroups: Record<string, boolean>;
+    weight: {
+      original: number;
+      estimated?: number;
+      estimating?: boolean;
+    };
   };
 
   type TFontsState = {
