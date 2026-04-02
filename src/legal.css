@@ -26,6 +26,16 @@ p {
   margin: 0 0 16px;
 }
 
+code {
+  padding: 0.1em 0.35em;
+
+  font-size: 0.95em;
+
+  border-radius: 4px;
+
+  background-color: color-mix(in oklab, var(--color-primary) 8%, transparent);
+}
+
 footer {
   padding-top: 20px;
   padding-bottom: 12px;

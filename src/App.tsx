@@ -25,9 +25,10 @@ export const App: Component = () => {
         {isEmpty() && (
           <footer>
             <div>© 2026 Prototypic</div>
-            <a href="/terms" style="margin-left: auto">
-              Terms of Service
+            <a href="/about" style="margin-left: auto">
+              About
             </a>
+            <a href="/terms">Terms of Service</a>
             <a href="/privacy">Privacy Policy</a>
           </footer>
         )}
