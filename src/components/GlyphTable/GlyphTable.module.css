@@ -20,6 +20,12 @@
   background-color: color-mix(in oklab, var(--color-base) 99%, transparent);
 }
 
+@media (width <= 600px) {
+  .header {
+    top: 137px;
+  }
+}
+
 .fontInfo {
   display: flex;
   gap: 16px;
@@ -92,4 +98,28 @@
 
 .bordered {
   border-top-color: var(--color-divider);
+}
+
+.exportFont::before {
+  content: attr(data-label);
+}
+
+.copySelection::before {
+  content: "Copy Selection to All Fonts";
+}
+
+@media (width <= 740px) {
+  .copySelection::before {
+    content: "Copy Selection";
+  }
+
+  .exportFont::before {
+    content: "Export Font";
+  }
+}
+
+@media (width <= 365px) {
+  .exportFont {
+    display: none;
+  }
 }

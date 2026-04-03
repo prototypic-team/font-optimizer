@@ -76,30 +76,34 @@ export const FontList: Component = () => {
 
   return (
     <Show when={fonts().length > 0}>
-      <nav class={styles.list}>
-        <For each={fonts()}>{(font) => <FontItem font={font} />}</For>
-        <button
-          class={cn(styles.item, styles.addFonts)}
-          onClick={openFilePicker}
-        >
-          <div>
-            <span class={styles.name}>Add Fonts</span>
-            <span class={styles.size}>{modKey} + U</span>
-          </div>
-        </button>
-        <button
-          id="clear-all"
-          class={cn(styles.item, styles.clearAll)}
-          onClick={(e) => {
-            e.stopPropagation();
-            clearFonts();
-          }}
-        >
-          <div>
-            <span class={styles.name}>Clear All</span>
-            <span class={styles.size}>{modKey} + Del</span>
-          </div>
-        </button>
+      <nav class={styles.container}>
+        <div class={styles.list}>
+          <For each={fonts()}>{(font) => <FontItem font={font} />}</For>
+        </div>
+        <div class={styles.actions}>
+          <button
+            class={cn(styles.item, styles.addFonts)}
+            onClick={openFilePicker}
+          >
+            <div>
+              <span class={styles.name}>Add Fonts</span>
+              <span class={styles.size}>{modKey} + U</span>
+            </div>
+          </button>
+          <button
+            id="clear-all"
+            class={cn(styles.item, styles.clearAll)}
+            onClick={(e) => {
+              e.stopPropagation();
+              clearFonts();
+            }}
+          >
+            <div>
+              <span class={styles.name}>Clear All</span>
+              <span class={styles.size}>{modKey} + Del</span>
+            </div>
+          </button>
+        </div>
       </nav>
     </Show>
   );

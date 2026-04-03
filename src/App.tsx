@@ -28,8 +28,8 @@ export const App: Component = () => {
             <a href="/about" style="margin-left: auto">
               About
             </a>
-            <a href="/terms">Terms of Service</a>
-            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms</a>
+            <a href="/privacy">Privacy</a>
           </footer>
         )}
       </>

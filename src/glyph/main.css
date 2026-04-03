@@ -46,7 +46,8 @@ ul,
 ol,
 li,
 header,
-footer {
+footer,
+div {
   box-sizing: border-box;
 }
 

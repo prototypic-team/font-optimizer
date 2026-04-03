@@ -6,7 +6,7 @@
 
 .group > header {
   position: sticky;
-  top: 52px;
+  top: calc(52px + 137px);
   z-index: 1;
 
   display: flex;

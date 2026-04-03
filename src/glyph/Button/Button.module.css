@@ -116,6 +116,10 @@
   visibility: hidden;
 }
 
+.button:has(.hidden)::before {
+  visibility: hidden;
+}
+
 .loader {
   position: absolute;
   top: 50%;

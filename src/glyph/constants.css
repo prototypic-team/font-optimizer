@@ -22,6 +22,7 @@
   --border-radius-controls: 4px;
   --border-radius-panels: 8px;
   --height-controls-small: 26px;
+  --portrait-width: 600px;
 
   /* Animations */
   --transition-active: 0.07s ease-out;

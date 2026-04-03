@@ -171,22 +171,21 @@ export const GlyphTable: Component = () => {
         >
           <Show when={hasMultipleFonts()}>
             <Button
+              class={styles.copySelection}
               kind="secondary"
               disabled={!canCopySelection()}
               onClick={() => copySelectionToAllFonts(base()!.id)}
-            >
-              Apply Selection to All Fonts
-            </Button>
+            />
           </Show>
           <div class={styles.footerActions}>
             <Button
+              data-label={`Export ${base()!.name}`}
+              class={styles.exportFont}
               kind="secondary"
               loading={exporting()}
               disabled={!canExport()}
               onClick={handleExport}
-            >
-              Export {base()!.name}
-            </Button>
+            />
             <Button
               kind="primary"
               loading={exportingAll()}
