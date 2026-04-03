@@ -30,6 +30,8 @@
   display: flex;
   gap: 16px;
   align-items: center;
+
+  text-align: right;
 }
 
 .fontMeta {
