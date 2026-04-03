@@ -6,7 +6,7 @@
 
 .group > header {
   position: sticky;
-  top: calc(52px + 137px);
+  top: calc(52px);
   z-index: 1;
 
   display: flex;
@@ -16,6 +16,12 @@
   padding-bottom: 2px;
 
   background-color: color-mix(in oklab, var(--color-base) 99%, transparent);
+}
+
+@media (width <= 600px) {
+  .group > header {
+    top: calc(52px + 137px);
+  }
 }
 
 .collapseButton {
