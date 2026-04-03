@@ -4,7 +4,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "build": "vite build",
+    "build": "npm run lint && npm run types && npm run test && vite build",
     "dev": "vite",
     "lint": "oxlint",
     "serve": "vite preview",

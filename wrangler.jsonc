@@ -1,0 +1,8 @@
+// Cloudflare Pages (dashboard / Git): build command `npm run build`, output `./dist`.
+// `build` runs lint, types, tests, then `vite build`.
+// Local deploy: `npm run build` then `wrangler pages deploy` (uses pages_build_output_dir).
+{
+	"name": "font-optimizer",
+	"compatibility_date": "2026-04-02",
+	"pages_build_output_dir": "./dist"
+}
