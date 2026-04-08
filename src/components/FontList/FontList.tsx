@@ -59,7 +59,13 @@ const FontItem: Component<{ font: TFont }> = (props) => {
       <button
         class={styles.remove}
         aria-label={`Remove ${props.font.name}`}
-        onClick={() => removeFont(props.font.id)}
+        onClick={(e) => {
+          // We need to stop propagation to avoid the DropZone component
+          // that wraps the app, to catch a click, when user removes the
+          // last font.
+          e.stopPropagation();
+          removeFont(props.font.id);
+        }}
       >
         ×
       </button>
