@@ -2,13 +2,74 @@ import { zipSync } from "fflate";
 
 let worker: Worker | null = null;
 
+const DEFAULT_WORKER_TIMEOUT_MS = 30_000;
+
+type TWorkerResponse = {
+	id: string;
+	woff?: Uint8Array;
+	woff2?: Uint8Array;
+	error?: string;
+};
+
+type TPending = {
+	resolve: (value: { woff: Uint8Array; woff2: Uint8Array }) => void;
+	reject: (reason?: unknown) => void;
+	timer: ReturnType<typeof setTimeout>;
+};
+
+const pending = new Map<string, TPending>();
+
+const terminateWorker = (): void => {
+	if (!worker) return;
+	try {
+		worker.terminate();
+	} finally {
+		worker = null;
+	}
+};
+
+const rejectAllPending = (error: Error): void => {
+	for (const [id, p] of pending) {
+		clearTimeout(p.timer);
+		p.reject(error);
+		pending.delete(id);
+	}
+};
+
 const getWorker = (): Worker => {
-  if (!worker) {
-    worker = new Worker(new URL("./worker.ts", import.meta.url), {
-      type: "module",
-    });
-  }
-  return worker;
+	if (!worker) {
+		worker = new Worker(new URL("./worker.ts", import.meta.url), {
+			type: "module",
+		});
+
+		worker.addEventListener("message", (e: MessageEvent<TWorkerResponse>) => {
+			const p = pending.get(e.data.id);
+			if (!p) return;
+			pending.delete(e.data.id);
+			clearTimeout(p.timer);
+
+			const { woff, woff2, error } = e.data;
+			if (error) {
+				p.reject(new Error(error));
+				return;
+			}
+			if (!woff || !woff2) {
+				p.reject(new Error("Export failed: missing WOFF or WOFF2 data"));
+				return;
+			}
+			p.resolve({ woff, woff2 });
+		});
+
+		worker.addEventListener("error", (e) => {
+			const err =
+				e instanceof ErrorEvent && e.error instanceof Error
+					? e.error
+					: new Error("Export worker crashed");
+			rejectAllPending(err);
+			terminateWorker();
+		});
+	}
+	return worker;
 };
 
 const downloadBlob = async (blob: Blob, fileName: string): Promise<void> => {
@@ -54,35 +115,19 @@ const processFont = (
   fontBuffer: ArrayBuffer,
   codePoints: number[]
 ): Promise<{ woff: Uint8Array; woff2: Uint8Array }> => {
-  const id = crypto.randomUUID();
-  return new Promise((resolve, reject) => {
-    const w = getWorker();
+	const id = crypto.randomUUID();
+	return new Promise((resolve, reject) => {
+		const w = getWorker();
 
-    const onMessage = (
-      e: MessageEvent<{
-        id: string;
-        woff?: Uint8Array;
-        woff2?: Uint8Array;
-        error?: string;
-      }>
-    ) => {
-      if (e.data.id !== id) return;
-      w.removeEventListener("message", onMessage);
-      const { woff, woff2, error } = e.data;
-      if (error) {
-        reject(new Error(error));
-        return;
-      }
-      if (!woff || !woff2) {
-        reject(new Error("Export failed: missing WOFF or WOFF2 data"));
-        return;
-      }
-      resolve({ woff, woff2 });
-    };
+		const timer = setTimeout(() => {
+			pending.delete(id);
+			reject(new Error("Export worker timed out"));
+			terminateWorker();
+		}, DEFAULT_WORKER_TIMEOUT_MS);
 
-    w.addEventListener("message", onMessage);
-    w.postMessage({ id, fontBuffer, codePoints }, [fontBuffer]);
-  });
+		pending.set(id, { resolve, reject, timer });
+		w.postMessage({ id, fontBuffer, codePoints }, [fontBuffer]);
+	});
 };
 
 export const measureFontSize = async (
