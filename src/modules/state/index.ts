@@ -87,6 +87,16 @@ const [store, setStore] = createStore<TFontsState>({
   parsingFonts: {},
 });
 
+/** FontFace instances registered with `document.fonts` for preview; cleared on remove/clear. */
+const fontFaces = new Map<string, FontFace>();
+
+const unregisterFontFace = (fontId: string): void => {
+  const face = fontFaces.get(fontId);
+  if (!face) return;
+  document.fonts.delete(face);
+  fontFaces.delete(fontId);
+};
+
 const addFonts = (files: File[]) => {
   const newFiles = [...files];
 
@@ -135,6 +145,7 @@ const addFonts = (files: File[]) => {
 };
 
 const removeFont = (fontId: string) => {
+  unregisterFontFace(fontId);
   setStore(
     produce((prev) => {
       delete prev.fonts[fontId];
@@ -159,6 +170,9 @@ const clearFonts = () => {
       prev.parsingFonts = {};
     })
   );
+  for (const id of [...fontFaces.keys()]) {
+    unregisterFontFace(id);
+  }
   schedulePersistSnapshot();
 };
 
@@ -195,9 +209,14 @@ const createFontForCollectionEntry = (
 
 const registerFontFace = (font: TFont) => {
   font.file.arrayBuffer().then((buffer) => {
+    if (!store.fonts[font.id]) return;
+
     const face = new FontFace(font.id, buffer);
     face.load().then((loaded) => {
+      if (!store.fonts[font.id]) return;
+      unregisterFontFace(font.id);
       document.fonts.add(loaded);
+      fontFaces.set(font.id, loaded);
     });
   });
 };
@@ -226,6 +245,7 @@ const loadParsedFont = async (font: TFont) => {
     // If the primary face duplicates an existing font, discard the placeholder
     // and bail out — nothing useful to add.
     if (existingNames.has(first.info.fullName)) {
+      unregisterFontFace(font.id);
       setStore(
         produce((prev) => {
           delete prev.fonts[font.id];
@@ -258,15 +278,16 @@ const loadParsedFont = async (font: TFont) => {
           const parentIndex = prev.fontOrder.indexOf(font.id);
           const insertAt =
             parentIndex >= 0 ? parentIndex + 1 : prev.fontOrder.length;
+
           for (let i = 0; i < extraFonts.length; i++) {
             prev.fonts[extraFonts[i].id] = extraFonts[i];
             prev.fontOrder.splice(insertAt + i, 0, extraFonts[i].id);
+            prev.parsedFonts[extraFonts[i].id] = rest[i];
           }
         })
       );
 
       for (let i = 0; i < extraFonts.length; i++) {
-        setStore("parsedFonts", extraFonts[i].id, rest[i]);
         registerFontFace(extraFonts[i]);
         scheduleMeasurement(extraFonts[i].id);
       }
