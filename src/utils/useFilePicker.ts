@@ -90,11 +90,6 @@ const isFontFile = (file: File): boolean => {
   return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
 };
 
-const filterFontFiles = (fileList: FileList | File[] | null): File[] => {
-  if (!fileList) return [];
-  return Array.from(fileList).filter(isFontFile);
-};
-
 type UseFilePickerOptions = {
   onFilesSelected: (files: File[]) => void;
 };
@@ -103,7 +98,9 @@ export const useFilePicker = (options: UseFilePickerOptions) => {
   const { onFilesSelected } = options;
 
   const handleFileList = (files: FileList | File[] | null) => {
-    const fontFiles = filterFontFiles(files);
+    if (!files) return;
+
+    const fontFiles = Array.from(files).filter(isFontFile);
     if (fontFiles.length > 0) {
       onFilesSelected(fontFiles);
     }
