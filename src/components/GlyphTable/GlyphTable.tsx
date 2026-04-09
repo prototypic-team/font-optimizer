@@ -41,17 +41,20 @@ export const GlyphTable: Component = () => {
   });
 
   const disabledGlyphsCount = createMemo(() => {
-    if (!base() || !parsed()) return 0;
+    const b = base();
+    const p = parsed();
+    if (!b || !p) return 0;
 
-    return Object.values(base()!.disabledCodePoints).filter((v) => v === true)
-      .length;
+    return Object.values(b.disabledCodePoints).filter((v) => v === true).length;
   });
   const glyphCount = createMemo(() => {
-    if (!parsed()) return 0;
+    const b = base();
+    const p = parsed();
+    if (!b || !p) return 0;
     let count = 0;
-    for (const group of parsed()!.groups) {
+    for (const group of p.groups) {
       for (const glyph of group.glyphs) {
-        if (!base()?.disabledCodePoints[glyph.codePoints.join(",")]) count++;
+        if (!b.disabledCodePoints[glyph.codePoints.join(",")]) count++;
       }
     }
     return count;
@@ -111,92 +114,104 @@ export const GlyphTable: Component = () => {
 
   return (
     <Show when={base()}>
-      <div class={styles.table}>
-        <header class={styles.header}>
-          <h1
-            classList={{
-              [styles.parsed]: !!parsed(),
-              pulse: isParsing(),
-            }}
-            style={{ "font-family": `"${base()!.id}", sans-serif` }}
-          >
-            {base()!.name}
-          </h1>
-          {parsed() && (
-            <div class={styles.fontInfo}>
-              <div class={styles.fontMeta}>
-                {disabledGlyphsCount()
-                  ? `${glyphCount()} / ${parsed()!.totalGlyphs}`
-                  : glyphCount()}{" "}
-                glyphs
-                <span class={styles.fontFileSize}>
-                  {formatFileSize(base()!.weight.original)}
-                  {base()!.weight.estimated !== undefined && (
-                    <>
-                      <span> → </span>
-                      {formatFileSize(base()!.weight.estimated!)}
-                    </>
-                  )}
-                </span>
-              </div>
-            </div>
-          )}
-        </header>
-        <div class={styles.groups}>
-          <Show
-            when={parsed()}
-            fallback={
-              <>
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-                <GlyphSkeleton />
-              </>
-            }
-          >
-            <For each={parsed()!.groups}>
-              {(group) =>
-                group.glyphs.length > 0 ? <GlyphGroup group={group} /> : null
-              }
-            </For>
-          </Show>
-          <div ref={sentinelRef} class={styles.sentinel} />
-        </div>
-        <footer
-          class={styles.footer}
-          classList={{ [styles.bordered]: hasContentBelow() }}
-        >
-          <Show when={hasMultipleFonts()}>
-            <Button
-              class={styles.copySelection}
-              kind="secondary"
-              disabled={!canCopySelection()}
-              onClick={() => copySelectionToAllFonts(base()!.id)}
-            />
-          </Show>
-          <div class={styles.footerActions}>
-            <Button
-              data-label={`Export ${base()!.name}`}
-              class={styles.exportFont}
-              kind="secondary"
-              loading={exporting()}
-              disabled={!canExport()}
-              onClick={handleExport}
-            />
-            <Button
-              kind="primary"
-              loading={exportingAll()}
-              disabled={!canExportAll()}
-              onClick={handleExportAll}
+      {(b) => (
+        <div class={styles.table}>
+          <header class={styles.header}>
+            <h1
+              classList={{
+                [styles.parsed]: !!parsed(),
+                pulse: isParsing(),
+              }}
+              style={{ "font-family": `"${b().id}", sans-serif` }}
             >
-              Export All
-            </Button>
+              {b().name}
+            </h1>
+            <Show when={parsed()}>
+              {(p) => (
+                <div class={styles.fontInfo}>
+                  <div class={styles.fontMeta}>
+                    {disabledGlyphsCount()
+                      ? `${glyphCount()} / ${p().totalGlyphs}`
+                      : glyphCount()}{" "}
+                    glyphs
+                    <span class={styles.fontFileSize}>
+                      {formatFileSize(b().weight.original)}
+                      {(() => {
+                        const est = b().weight.estimated;
+                        if (est === undefined) return null;
+                        return (
+                          <>
+                            <span> → </span>
+                            {formatFileSize(est)}
+                          </>
+                        );
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </Show>
+          </header>
+          <div class={styles.groups}>
+            <Show
+              when={parsed()}
+              fallback={
+                <>
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                  <GlyphSkeleton />
+                </>
+              }
+            >
+              {(p) => (
+                <For each={p().groups}>
+                  {(group) =>
+                    group.glyphs.length > 0 ? (
+                      <GlyphGroup font={b()} parsed={p()} group={group} />
+                    ) : null
+                  }
+                </For>
+              )}
+            </Show>
+            <div ref={sentinelRef} class={styles.sentinel} />
           </div>
-        </footer>
-      </div>
+          <footer
+            class={styles.footer}
+            classList={{ [styles.bordered]: hasContentBelow() }}
+          >
+            <Show when={hasMultipleFonts()}>
+              <Button
+                class={styles.copySelection}
+                kind="secondary"
+                disabled={!canCopySelection()}
+                onClick={() => copySelectionToAllFonts(b().id)}
+              />
+            </Show>
+            <div class={styles.footerActions}>
+              <Button
+                data-label={`Export ${b().name}`}
+                class={styles.exportFont}
+                kind="secondary"
+                loading={exporting()}
+                disabled={!canExport()}
+                onClick={handleExport}
+              />
+              <Button
+                kind="primary"
+                loading={exportingAll()}
+                disabled={!canExportAll()}
+                onClick={handleExportAll}
+              >
+                Export All
+              </Button>
+            </div>
+          </footer>
+        </div>
+      )}
     </Show>
   );
 };

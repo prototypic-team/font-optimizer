@@ -1,34 +1,31 @@
 import { Component, createMemo, Show } from "solid-js";
 
-import { useCurrentFont } from "~/modules/fonts";
 import { formatCodePoint } from "~/modules/fonts/utils";
 import { toggleGlyph } from "~/modules/state";
 
 import styles from "./GlyphCell.module.css";
 
-import type { TGlyph } from "Types";
+import type { TFont, TGlyph, TParsedFont } from "Types";
 
 type GlyphCellProps = {
+  font: TFont;
+  parsed: TParsedFont;
   glyph: TGlyph;
 };
 
 export const GlyphCell: Component<GlyphCellProps> = (props) => {
-  const { base, parsed } = useCurrentFont();
   // SVG viewBox: minX, minY, width, height
   // Font coordinates: Y goes up. SVG coordinates: Y goes down.
   // We flip Y with scale(1, -1), so font's maxY becomes SVG's minY (top edge)
   // Use 0 for minX and unitsPerEm for width, then translate to center each glyph
   const viewBox = createMemo(() => {
-    if (!parsed()?.info) return "0 0 0 0";
-    const { bbox } = parsed()!.info;
+    const { bbox } = props.parsed.info;
     return `0 ${-bbox.maxY} ${bbox.width} ${bbox.height}`;
   });
 
   // Calculate horizontal offset to center the glyph based on its advance width
   const transform = createMemo(() => {
-    if (!parsed()?.info) return "";
-
-    const { bbox } = parsed()!.info;
+    const { bbox } = props.parsed.info;
     const offsetX = (bbox.width - props.glyph.advanceWidth) / 2;
     return `translate(${offsetX}, 0) scale(1, -1)`;
   });
@@ -45,10 +42,10 @@ export const GlyphCell: Component<GlyphCellProps> = (props) => {
       class={styles.cell}
       classList={{
         [styles.cell]: true,
-        [styles.disabled]: base()?.disabledCodePoints[codePoints()],
+        [styles.disabled]: props.font.disabledCodePoints[codePoints()],
       }}
       title={props.glyph.name}
-      onClick={() => toggleGlyph(base()!.id, codePoints())}
+      onClick={() => toggleGlyph(props.font.id, codePoints())}
     >
       <svg class={styles.glyphSvg} viewBox={viewBox()}>
         <Show

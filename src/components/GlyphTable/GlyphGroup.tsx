@@ -1,12 +1,11 @@
 import { Component, createEffect, createMemo, For, Show } from "solid-js";
 
-import { useCurrentFont } from "~/modules/fonts";
 import { toggleGroup, toggleGroupCollapsed } from "~/modules/state";
 
 import { GlyphCell } from "./GlyphCell";
 import styles from "./GlyphGroup.module.css";
 
-import type { TGlyphGroup } from "Types";
+import type { TFont, TGlyphGroup, TParsedFont } from "Types";
 
 const formatPercent = (count: number, total: number): string => {
   if (total === 0) return "0%";
@@ -16,16 +15,16 @@ const formatPercent = (count: number, total: number): string => {
 };
 
 type GlyphGroupProps = {
+  font: TFont;
+  parsed: TParsedFont;
   group: TGlyphGroup;
 };
 
 export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
-  const { base, parsed } = useCurrentFont();
-
   const glyphCount = createMemo(() => {
     let disabledGlyphsCount = 0;
     for (const glyph of props.group.glyphs) {
-      if (base()?.disabledCodePoints[glyph.codePoints.join(",")]) {
+      if (props.font.disabledCodePoints[glyph.codePoints.join(",")]) {
         disabledGlyphsCount++;
       }
     }
@@ -33,16 +32,16 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
   });
 
   const weightPercent = createMemo(() =>
-    formatPercent(glyphCount(), parsed()?.totalGlyphs || 0)
+    formatPercent(glyphCount(), props.parsed.totalGlyphs || 0)
   );
 
   let checkboxRef: HTMLInputElement | undefined;
   const checkboxId = createMemo(
-    () => `${base()?.id}-${props.group.category.id}`
+    () => `${props.font.id}-${props.group.category.id}`
   );
 
   const isCollapsed = createMemo(
-    () => base()?.collapsedGroups?.[props.group.category.id] ?? true
+    () => props.font.collapsedGroups?.[props.group.category.id] ?? true
   );
 
   createEffect(() => {
@@ -50,7 +49,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
       let allEnabled = true,
         allDisabled = true;
       for (const glyph of props.group.glyphs) {
-        if (base()?.disabledCodePoints[glyph.codePoints.join(",")]) {
+        if (props.font.disabledCodePoints[glyph.codePoints.join(",")]) {
           allEnabled = false;
         } else {
           allDisabled = false;
@@ -79,7 +78,9 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
               type="checkbox"
               ref={checkboxRef}
               id={checkboxId()}
-              onChange={() => toggleGroup(base()!.id, props.group.category.id)}
+              onChange={() =>
+                toggleGroup(props.font.id, props.group.category.id)
+              }
             />
           </div>
           <label for={checkboxId()}>
@@ -89,7 +90,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
             type="button"
             class={styles.collapseButton}
             onClick={() =>
-              toggleGroupCollapsed(base()!.id, props.group.category.id)
+              toggleGroupCollapsed(props.font.id, props.group.category.id)
             }
             aria-label={isCollapsed() ? "Expand" : "Collapse"}
           >
@@ -116,7 +117,7 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
           tabindex="-1"
           class={styles.collapseTrigger}
           onClick={() =>
-            toggleGroupCollapsed(base()!.id, props.group.category.id)
+            toggleGroupCollapsed(props.font.id, props.group.category.id)
           }
           aria-label={isCollapsed() ? "Expand" : "Collapse"}
         ></button>
@@ -133,7 +134,13 @@ export const GlyphGroup: Component<GlyphGroupProps> = (props) => {
       <Show when={!isCollapsed()}>
         <div class={styles.grid}>
           <For each={props.group.glyphs}>
-            {(glyph) => <GlyphCell glyph={glyph} />}
+            {(glyph) => (
+              <GlyphCell
+                font={props.font}
+                parsed={props.parsed}
+                glyph={glyph}
+              />
+            )}
           </For>
         </div>
       </Show>
