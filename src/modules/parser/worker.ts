@@ -4,7 +4,6 @@ import {
   getCategoryForCodePoint,
   GLYPH_CATEGORIES,
 } from "~/modules/fonts/categories";
-import { getFeatureName } from "~/modules/fonts/features";
 
 import type { TFontInfo, TGlyphGroup, TParsedFont } from "Types";
 
@@ -59,10 +58,6 @@ const parseSingleFont = (font: Font): TParsedFont => {
     totalGlyphs: font.numGlyphs,
     groups: Object.values(groups),
     info,
-    features: (font.availableFeatures ?? []).map((tag: string) => ({
-      tag,
-      name: getFeatureName(tag),
-    })),
   };
 };
 

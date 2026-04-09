@@ -20,11 +20,6 @@ declare module "Types" {
     glyphs: TGlyph[];
   };
 
-  export type TFontFeature = {
-    tag: string;
-    name: string;
-  };
-
   export type TBBox = {
     minX: number;
     minY: number;
@@ -47,6 +42,5 @@ declare module "Types" {
     totalGlyphs: number;
     groups: TGlyphGroup[];
     info: TFontInfo;
-    features: TFontFeature[];
   };
 }
