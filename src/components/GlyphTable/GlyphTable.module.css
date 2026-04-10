@@ -98,6 +98,24 @@
   margin-left: auto;
 }
 
+.error {
+  inset: auto;
+
+  max-width: 320px;
+  margin: 8px;
+  padding: 8px 12px;
+
+  color: var(--color-base);
+  font-size: var(--font-size-basic);
+
+  background-color: var(--color-danger);
+  border: none;
+  border-radius: var(--border-radius-controls);
+  box-shadow: var(--shadow-menu);
+
+  position-area: top;
+}
+
 .bordered {
   border-top-color: var(--color-divider);
 }

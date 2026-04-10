@@ -18,7 +18,7 @@ type ButtonProps = MergeWithPriority<
      */
     kind?: "default" | "primary" | "secondary";
   },
-  Omit<JSX.ButtonHTMLAttributes<HTMLButtonElement>, "classList">
+  JSX.ButtonHTMLAttributes<HTMLButtonElement>
 >;
 
 export const Button: Component<ButtonProps> = (props) => {

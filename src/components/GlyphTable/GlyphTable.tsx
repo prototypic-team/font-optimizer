@@ -27,7 +27,24 @@ export const GlyphTable: Component = () => {
   const [exporting, setExporting] = createSignal(false);
   const [exportingAll, setExportingAll] = createSignal(false);
   const [hasContentBelow, setHasContentBelow] = createSignal(false);
+  const [exportError, setExportError] = createSignal<
+    { message: string; anchor: "all" | "font" } | undefined
+  >(undefined);
   let sentinelRef!: HTMLDivElement;
+  let errorPopoverRef!: HTMLDivElement;
+  let exportAllRef!: HTMLButtonElement;
+  let exportFontRef!: HTMLButtonElement;
+
+  createEffect(() => {
+    if (errorPopoverRef.isConnected && exportError()) {
+      // The typing is not up to date and does not accept
+      // the source parameter.
+      // @ts-expect-error
+      errorPopoverRef.showPopover({
+        source: exportError()?.anchor === "all" ? exportAllRef : exportFontRef,
+      });
+    }
+  });
 
   createEffect(() => {
     const observer = new IntersectionObserver(
@@ -92,10 +109,14 @@ export const GlyphTable: Component = () => {
 
   const handleExport = async () => {
     setExporting(true);
+    setExportError(undefined);
     try {
       await exportSelectedFont();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Export failed");
+      setExportError({
+        message: err instanceof Error ? err.message : "Export failed",
+        anchor: "font",
+      });
     } finally {
       setExporting(false);
     }
@@ -103,10 +124,14 @@ export const GlyphTable: Component = () => {
 
   const handleExportAll = async () => {
     setExportingAll(true);
+    setExportError(undefined);
     try {
       await exportAllFonts();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Export failed");
+      setExportError({
+        message: err instanceof Error ? err.message : "Export failed",
+        anchor: "all",
+      });
     } finally {
       setExportingAll(false);
     }
@@ -193,21 +218,32 @@ export const GlyphTable: Component = () => {
             </Show>
             <div class={styles.footerActions}>
               <Button
+                ref={exportFontRef}
                 data-label={`Export ${b().name}`}
                 class={styles.exportFont}
+                classList={{
+                  failed: exportError()?.anchor === "font",
+                }}
                 kind="secondary"
                 loading={exporting()}
                 disabled={!canExport()}
                 onClick={handleExport}
               />
               <Button
+                ref={exportAllRef}
                 kind="primary"
+                classList={{
+                  failed: exportError()?.anchor === "all",
+                }}
                 loading={exportingAll()}
                 disabled={!canExportAll()}
                 onClick={handleExportAll}
               >
                 Export All
               </Button>
+            </div>
+            <div popover ref={errorPopoverRef} class={styles.error}>
+              {exportError()?.message}
             </div>
           </footer>
         </div>
