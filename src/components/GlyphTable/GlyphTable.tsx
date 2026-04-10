@@ -37,9 +37,6 @@ export const GlyphTable: Component = () => {
 
   createEffect(() => {
     if (errorPopoverRef.isConnected && exportError()) {
-      // The typing is not up to date and does not accept
-      // the source parameter.
-      // @ts-expect-error
       errorPopoverRef.showPopover({
         source: exportError()?.anchor === "all" ? exportAllRef : exportFontRef,
       });
