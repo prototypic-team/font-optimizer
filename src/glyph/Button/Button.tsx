@@ -1,7 +1,6 @@
 import { Component, JSX, Show, splitProps } from "solid-js";
 
 import { cn } from "../cn";
-import { focusPropsNames, useFocus } from "../hooks/focusVisible";
 import { Loader } from "../Loader/Loader";
 import styles from "./Button.module.css";
 
@@ -22,20 +21,20 @@ type ButtonProps = MergeWithPriority<
 >;
 
 export const Button: Component<ButtonProps> = (props) => {
-  const [local, focus, other] = splitProps(
-    props,
-    ["kind", "children", "class", "disabled", "loading", "type"],
-    focusPropsNames
-  );
+  const [local, other] = splitProps(props, [
+    "kind",
+    "children",
+    "class",
+    "disabled",
+    "loading",
+    "type",
+  ]);
 
-  const { focusVisible, props: focusProps } = useFocus(focus);
   return (
     <button
       class={cn(styles.button, styles[local.kind || "default"], local.class)}
-      data-focus-visible={focusVisible()}
       disabled={local.disabled || local.loading}
       type={local.type || "button"}
-      {...focusProps}
       {...other}
     >
       <span class={cn(styles.inner, local.loading && styles.hidden)}>

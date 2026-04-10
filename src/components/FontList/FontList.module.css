@@ -43,7 +43,7 @@
   cursor: pointer;
   opacity: 0.35;
 
-  transition: background-color var(--transition-basic);
+  transition: background-color var(--transition-active);
 }
 
 .itemWrapper > .item {
@@ -79,8 +79,8 @@
   opacity: 0;
 
   transition:
-    color var(--transition-basic),
-    opacity var(--transition-basic);
+    color var(--transition-active),
+    opacity var(--transition-active);
 }
 
 .itemWrapper:hover .remove,

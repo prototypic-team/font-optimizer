@@ -15,24 +15,22 @@ export const App: Component = () => {
 
   return (
     <Show when={hydrated()}>
-      <>
-        <DropZone>
-          <div class={styles.main}>
-            <FontList />
-            <GlyphTable />
-          </div>
-        </DropZone>
-        {isEmpty() && (
-          <footer>
-            <div>© 2026 Prototypic</div>
-            <a href="/about" style="margin-left: auto">
-              About
-            </a>
-            <a href="/terms">Terms</a>
-            <a href="/privacy">Privacy</a>
-          </footer>
-        )}
-      </>
+      <DropZone>
+        <div class={styles.main}>
+          <FontList />
+          <GlyphTable />
+        </div>
+      </DropZone>
+      {isEmpty() && (
+        <footer>
+          <div>© 2026 Prototypic</div>
+          <a href="/about" style="margin-left: auto">
+            About
+          </a>
+          <a href="/terms">Terms</a>
+          <a href="/privacy">Privacy</a>
+        </footer>
+      )}
     </Show>
   );
 };

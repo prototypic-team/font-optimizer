@@ -42,7 +42,7 @@
   outline: none;
 }
 
-.button[data-focus-visible="true"]:not(:disabled) {
+.button:focus-visible:not(:disabled) {
   outline: var(--focus-outline);
 }
 
@@ -103,7 +103,7 @@
 
 @media (prefers-color-scheme: dark) {
   .secondary:hover:not(:disabled),
-  .secondary[data-focus-visible="true"]:not(:disabled) {
+  .secondary:focus-visible:not(:disabled) {
     background-color: color-mix(
       in oklab,
       var(--color-primary) 25%,

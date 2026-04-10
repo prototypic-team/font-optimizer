@@ -7,8 +7,8 @@
   min-height: calc(100dvh - 32px);
 
   transition:
-    background-color var(--transition-basic),
-    border-color var(--transition-basic);
+    background-color var(--transition-active),
+    border-color var(--transition-active);
 }
 
 .zone:focus-visible {
@@ -95,8 +95,8 @@
   opacity: 0;
 
   transition:
-    opacity var(--transition-basic),
-    background-color var(--transition-basic);
+    opacity var(--transition-active),
+    background-color var(--transition-active);
 
   pointer-events: none;
 }

@@ -38,8 +38,6 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-
-  font-size: var(--font-size-base);
 }
 
 .fontFileSize {
@@ -88,7 +86,7 @@
   border-top: 1px solid transparent;
   backdrop-filter: blur(8px);
 
-  transition: border-color var(--transition-basic);
+  transition: border-color var(--transition-active);
 }
 
 .footerActions {

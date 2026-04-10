@@ -124,7 +124,7 @@
 .group h3 {
   margin: 0;
 
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-regular);
   font-size: var(--font-size-header);
 }
 
