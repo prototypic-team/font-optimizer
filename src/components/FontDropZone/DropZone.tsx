@@ -1,12 +1,13 @@
-import { Component, createMemo, createSignal, JSX, onCleanup, onMount, Show } from "solid-js";
+import { Component, createMemo, createSignal, JSX, Show } from "solid-js";
 
-import { addFonts, clearFonts, store } from "~/modules/state";
-import { isMac } from "~/utils/platform";
-import { collectFilesFromDrop, useFilePicker } from "~/utils/useFilePicker";
+import { store } from "~/modules/state";
+import { collectFilesFromDrop } from "~/utils/files";
 
 import styles from "./DropZone.module.css";
 
 type Props = {
+  openFilePicker: () => void;
+  onDroppedFontFiles: (files: File[]) => void;
   children?: JSX.Element;
 };
 
@@ -14,31 +15,9 @@ export const DropZone: Component<Props> = (props) => {
   const [dragging, setDragging] = createSignal(false);
   let dragCounter = 0;
 
-  const { openFilePicker, handleFileList } = useFilePicker({
-    onFilesSelected: addFonts,
-  });
-
-  onMount(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.code === "KeyU" && (isMac ? e.metaKey : e.ctrlKey)) {
-        e.preventDefault();
-        openFilePicker();
-      }
-      const isClearShortcut = isMac
-        ? e.metaKey && (e.code === "Delete" || e.code === "Backspace")
-        : e.ctrlKey && e.code === "Delete";
-      if (isClearShortcut && Object.keys(store.fonts).length > 0) {
-        e.preventDefault();
-        clearFonts();
-      }
-    };
-    window.addEventListener("keydown", handleGlobalKeyDown);
-    onCleanup(() => window.removeEventListener("keydown", handleGlobalKeyDown));
-  });
-
   const handleClick: JSX.EventHandler<HTMLDivElement, MouseEvent> = () => {
     if (Object.keys(store.fonts).length > 0) return;
-    openFilePicker();
+    props.openFilePicker();
   };
 
   const handleKeyDown: JSX.EventHandler<HTMLDivElement, KeyboardEvent> = (
@@ -46,7 +25,7 @@ export const DropZone: Component<Props> = (props) => {
   ) => {
     if (Object.keys(store.fonts).length > 0) return;
     if (e.key === "Enter" || e.key === " ") {
-      openFilePicker();
+      props.openFilePicker();
     }
   };
 
@@ -71,7 +50,7 @@ export const DropZone: Component<Props> = (props) => {
     dragCounter = 0;
     setDragging(false);
     const files = await collectFilesFromDrop(e.dataTransfer ?? null);
-    handleFileList(files.length > 0 ? files : null);
+    props.onDroppedFontFiles(files);
   };
 
   const isEmpty = createMemo(() => Object.keys(store.fonts).length === 0);

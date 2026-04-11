@@ -1,17 +1,10 @@
 import { Component, createMemo, For, Show } from "solid-js";
 
 import { cn } from "~/glyph";
-import {
-  addFonts,
-  clearFonts,
-  removeFont,
-  selectFont,
-  store,
-} from "~/modules/state";
+import { clearFonts, removeFont, selectFont, store } from "~/modules/state";
 import { boolean } from "~/utils/boolean";
 import { formatFileSize } from "~/utils/format";
 import { isMac } from "~/utils/platform";
-import { useFilePicker } from "~/utils/useFilePicker";
 
 import styles from "./FontList.module.css";
 
@@ -73,12 +66,14 @@ const FontItem: Component<{ font: TFont }> = (props) => {
   );
 };
 
-export const FontList: Component = () => {
+type FontListProps = {
+  openFilePicker: () => void;
+};
+
+export const FontList: Component<FontListProps> = (props) => {
   const fonts = createMemo(() =>
     store.fontOrder.map((id) => store.fonts[id]).filter(boolean)
   );
-
-  const { openFilePicker } = useFilePicker({ onFilesSelected: addFonts });
 
   return (
     <Show when={fonts().length > 0}>
@@ -89,7 +84,7 @@ export const FontList: Component = () => {
         <div class={styles.actions}>
           <button
             class={cn(styles.item, styles.addFonts)}
-            onClick={openFilePicker}
+            onClick={props.openFilePicker}
           >
             <div>
               <span class={styles.name}>Add Fonts</span>

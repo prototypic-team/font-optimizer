@@ -69,7 +69,9 @@ export async function collectFilesFromDrop(
 }
 
 const ALLOWED_EXTENSIONS = [".woff2", ".woff", ".ttf", ".otf", ".ttc", ".otc"];
-const ACCEPT_EXTENSIONS = ALLOWED_EXTENSIONS.join(",");
+
+export const FONT_FILE_ACCEPT = ALLOWED_EXTENSIONS.join(",");
+
 const ALLOWED_MIME_TYPES = new Set([
   "font/woff2",
   "font/woff",
@@ -90,32 +92,10 @@ const isFontFile = (file: File): boolean => {
   return ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
 };
 
-type UseFilePickerOptions = {
-  onFilesSelected: (files: File[]) => void;
-};
-
-export const useFilePicker = (options: UseFilePickerOptions) => {
-  const { onFilesSelected } = options;
-
-  const handleFileList = (files: FileList | File[] | null) => {
-    if (!files) return;
-
-    const fontFiles = Array.from(files).filter(isFontFile);
-    if (fontFiles.length > 0) {
-      onFilesSelected(fontFiles);
-    }
-  };
-
-  const openFilePicker = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.accept = ACCEPT_EXTENSIONS;
-    input.onchange = () => {
-      handleFileList(input.files);
-    };
-    input.click();
-  };
-
-  return { openFilePicker, handleFileList };
-};
+export function filterFontFiles(
+  files: FileList | File[] | null | undefined
+): File[] {
+  if (!files) return [];
+  const list = Array.isArray(files) ? files : Array.from(files);
+  return list.filter(isFontFile);
+}

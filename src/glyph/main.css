@@ -101,7 +101,7 @@ footer {
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 4px 16px 8px;
+  padding: 0 16px 8px;
 
   color: color-mix(in oklab, currentcolor 50%, transparent);
   font-size: var(--font-size-small);
